@@ -1,5 +1,8 @@
 package com.lizi.skyright;
 
+import android.app.ActivityManager;
+import android.os.Bundle;
+import android.os.IBinder;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedHelpers;
@@ -15,6 +18,8 @@ public class HookInit implements IXposedHookLoadPackage {
 				lpparam.classLoader,
 				"isModuleActivated",
 				XC_MethodReplacement.returnConstant(true));
+		}else if("com.android.providers.settings".equals(lpparam.packageName)){
+			XposedHelpers.findAndHookMethod("com.android.server.wm.WindowManagerService",ActivityManager.getService().getClass().getClassLoader(), "addWindowToken",IBinder.class,int.class,int.class,Bundle.class,new DynamicHookImpl(lpparam.classLoader));
 		}
 		
 	}
