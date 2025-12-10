@@ -83,13 +83,16 @@ public class HookRegistry {
      * 添加一个 Method Hook
      */
     public void addMethodHook(XC_MethodHook.Unhook hook) {
-        hooks.add(hook);
+		//只有动态hook才能添加对象
+		if (dynamic) {
+			hooks.add(hook);
+		}
     }
 
     /**
      * 取消注册所有 Hook 并释放相关资源
      */
-	 
+
     public void unhookAll() throws Exception {
         if (hooks.isEmpty()) {
             return;
