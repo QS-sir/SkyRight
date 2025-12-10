@@ -90,7 +90,7 @@ public class HookRegistry {
      * 取消注册所有 Hook 并释放相关资源
      */
 	 
-    public void unMethodHookAll() throws Exception {
+    public void unhookAll() throws Exception {
         if (hooks.isEmpty()) {
             return;
         }

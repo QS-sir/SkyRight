@@ -63,7 +63,7 @@ public class DynamicHookImpl extends XC_MethodHook {
 		}
 		apkPath = getApkPath();
 		if (dynamicHookRegistry != null) {
-			XposedHelpers.callMethod(dynamicHookRegistry, "releaseMethodHook");
+			XposedHelpers.callMethod(dynamicHookRegistry, "unhookAll");
 		}
 		PathClassLoader hookClassLoader = new PathClassLoader(apkPath, hookRegistry.getXposedClassLoader());
 		Class<?> classMethodHookInit = hookClassLoader.loadClass("com.lizi.skyright.MethodHookInit");
