@@ -10,16 +10,17 @@ import de.robv.android.xposed.XposedHelpers;
 import java.lang.reflect.Constructor;
 
 public class DynamicHookImpl extends XC_MethodHook {
-	
+
 	private HookRegistry hookRegistry;
 	private ClassLoader baseClassLoader;
 	private ClassLoader hookClassLoader;
 	private Context context;
 	private PackageManager pm;
 	private UserManager userManager;
+	private Object dynamicHookRegistry;
 	private String apkPath;
-	
-    public DynamicHookImpl(ClassLoader hookClassLoader){
+
+    public DynamicHookImpl(ClassLoader hookClassLoader) {
 		this.hookRegistry = new HookRegistry(hookClassLoader);
 		this.baseClassLoader = hookRegistry.baseClassLoader();
 		this.hookClassLoader = hookRegistry.hookClassLoader();
@@ -47,7 +48,7 @@ public class DynamicHookImpl extends XC_MethodHook {
 			initDynamicHook();
 		}
 	}
-	
+
 	private String getApkPath() {
 		try {
 			return pm.getApplicationInfo("com.lizi.skyright", 0).sourceDir;
@@ -55,17 +56,22 @@ public class DynamicHookImpl extends XC_MethodHook {
 			return null;
 		}
 	}
-	
-	private void initDynamicHook() throws Exception{
+
+	private void initDynamicHook() throws Exception {
 		if (apkPath != null && apkPath.equals(getApkPath())) {
 			return;
 		}
 		apkPath = getApkPath();
-		hookRegistry.releaseMethodHook();
-		PathClassLoader hookClassLoader = new PathClassLoader(apkPath,hookRegistry.hookClassLoader());
-		Class<?> cs = hookClassLoader.loadClass("com.lizi.skyright.MethodHookInit");
-		Constructor<?> con = cs.getConstructor(HookRegistry.class);
-		con.newInstance(hookRegistry);
+		if (dynamicHookRegistry != null) {
+			XposedHelpers.callMethod(dynamicHookRegistry, "releaseMethodHook");
+		}
+		PathClassLoader hookClassLoader = new PathClassLoader(apkPath, hookRegistry.hookClassLoader());
+		Class<?> classMethodHookInit = hookClassLoader.loadClass("com.lizi.skyright.MethodHookInit");
+		Class<?> classHookRegistry = hookClassLoader.loadClass("com.lizi.skyright.HookRegistry");
+		Constructor<?> conMethodHookInit = classMethodHookInit.getConstructor(classHookRegistry);
+		Constructor<?> conHookRegistry = classHookRegistry.getConstructor(ClassLoader.class);
+		dynamicHookRegistry = conHookRegistry.newInstance(hookClassLoader);
+		conMethodHookInit.newInstance(dynamicHookRegistry);
 	}
-	
+
 }

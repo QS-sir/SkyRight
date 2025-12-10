@@ -14,12 +14,17 @@ public class HookRegistry {
 	private ClassLoader hookClassLoader;
 	private Context context;
 	private boolean isDynamicHook;
+	private ReleaseResources releaseResources;
 
 	public HookRegistry(ClassLoader hookClassLoader) {
 		this.methodHookList = new ArrayList<>();
 		this.baseClassLoader = ActivityManager.getService().getClass().getClassLoader();
 		this.hookClassLoader = hookClassLoader;
 		this.context = ActivityThread.currentActivityThread().getApplication();
+	}
+
+	public void setReleaseResources(ReleaseResources releaseResources) {
+		this.releaseResources = releaseResources;
 	}
 
 	public void setIsDynamicHook(boolean isDynamicHook) {
@@ -50,7 +55,7 @@ public class HookRegistry {
 		methodHookList.add(methodHook);
 	}
 
-	public final void releaseMethodHook() {
+	public final void releaseMethodHook() throws Exception {
 		int size = methodHookList.size();
 		if (size == 0) {
 			return;
@@ -58,6 +63,16 @@ public class HookRegistry {
 		for (XC_MethodHook.Unhook hook : methodHookList) {
 			hook.unhook();
 		}
+		
+		if (releaseResources != null) {
+			releaseResources.releaseResources();
+		}
+	}
+
+
+
+	public static interface ReleaseResources {
+		void releaseResources() throws Exception;
 	}
 
 }
