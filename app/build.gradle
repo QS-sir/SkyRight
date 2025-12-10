@@ -6,8 +6,8 @@ android {
     
     defaultConfig {
         applicationId "com.lizi.skyright"
-        minSdkVersion 21
-        targetSdkVersion 26
+        minSdkVersion 26
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
     }
