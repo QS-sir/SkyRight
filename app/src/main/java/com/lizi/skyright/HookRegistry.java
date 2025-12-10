@@ -1,78 +1,114 @@
 package com.lizi.skyright;
+
 import android.app.ActivityManager;
 import android.app.ActivityThread;
 import android.content.Context;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class HookRegistry {
 
-	private List<XC_MethodHook.Unhook> methodHookList;
-	private ClassLoader baseClassLoader;
-	private ClassLoader hookClassLoader;
-	private Context context;
-	private boolean isDynamicHook;
-	private ReleaseResources releaseResources;
+    private final List<XC_MethodHook.Unhook> hooks = new ArrayList<>();
 
-	public HookRegistry(ClassLoader hookClassLoader) {
-		this.methodHookList = new ArrayList<>();
-		this.baseClassLoader = ActivityManager.getService().getClass().getClassLoader();
-		this.hookClassLoader = hookClassLoader;
-		this.context = ActivityThread.currentActivityThread().getApplication();
-	}
+    // 2. 系统/框架层的 ClassLoader (由 ActivityManager.getService() 获取)
+    private final ClassLoader systemClassLoader;
 
-	public void setReleaseResources(ReleaseResources releaseResources) {
-		this.releaseResources = releaseResources;
-	}
+    // 3. 模块的 ClassLoader
+    private final ClassLoader moduleClassLoader;
 
-	public void setIsDynamicHook(boolean isDynamicHook) {
-		this.isDynamicHook = isDynamicHook;
-	}
+    // 4. 系统 Context
+    private final Context context;
 
-	public boolean isDynamicHook() {
-		return isDynamicHook;
-	}
+    // 5. 是否为动态 Hook (无需重启)
+    private boolean dynamic;
 
-	public ClassLoader baseClassLoader() {
-		return baseClassLoader;
-	}
+    // 6. 资源释放回调
+    private ResourceReleasable resourceReleasable;
 
-	public ClassLoader hookClassLoader() {
-		return hookClassLoader;
-	}
+    public HookRegistry(ClassLoader moduleClassLoader) {
+        this.moduleClassLoader = moduleClassLoader;
+        this.systemClassLoader = ActivityManager.getService().getClass().getClassLoader();
+        this.context = ActivityThread.currentActivityThread().getApplication();
+    }
 
-	public ClassLoader xposedClassLoader() {
-		return XposedBridge.BOOTCLASSLOADER;
-	}
+    /**
+     * 设置资源释放回调
+     */
+    public void setResourceReleasable(ResourceReleasable releasable) {
+        this.resourceReleasable = releasable;
+    }
 
-	public Context getContext() {
-		return context;
-	}
+    /**
+     * 设置是否为动态 Hook 模式
+     */
+    public void setDynamic(boolean dynamic) {
+        this.dynamic = dynamic;
+    }
 
-	public final void addMethodHook(XC_MethodHook.Unhook methodHook) {
-		methodHookList.add(methodHook);
-	}
+    /**
+     * 判断是否为动态 Hook
+     */
+    public boolean isDynamic() {
+        return dynamic;
+    }
 
-	public final void releaseMethodHook() throws Exception {
-		int size = methodHookList.size();
-		if (size == 0) {
-			return;
-		}
-		for (XC_MethodHook.Unhook hook : methodHookList) {
-			hook.unhook();
-		}
-		
-		if (releaseResources != null) {
-			releaseResources.releaseResources();
-		}
-	}
+    /**
+     * 获取系统框架层 ClassLoader
+     */
+    public ClassLoader getSystemClassLoader() {
+        return systemClassLoader;
+    }
 
+    /**
+     * 获取模块 ClassLoader
+     */
+    public ClassLoader getModuleClassLoader() {
+        return moduleClassLoader;
+    }
 
+    public ClassLoader getXposedClassLoader() {
+        return XposedBridge.BOOTCLASSLOADER;
+    }
 
-	public static interface ReleaseResources {
-		void releaseResources() throws Exception;
-	}
+    /**
+     * 获取宿主应用上下文
+     */
+    public Context getContext() {
+        return context;
+    }
 
+    /**
+     * 添加一个 Method Hook
+     */
+    public void addMethodHook(XC_MethodHook.Unhook hook) {
+        hooks.add(hook);
+    }
+
+    /**
+     * 取消注册所有 Hook 并释放相关资源
+     */
+	 
+    public void unMethodHookAll() throws Exception {
+        if (hooks.isEmpty()) {
+            return;
+        }
+        // 遍历并取消所有 Hook
+        for (XC_MethodHook.Unhook hook : hooks) {
+            hook.unhook();
+        }
+        hooks.clear(); // 清空列表，防止内存泄漏或重复操作
+        if (resourceReleasable != null) {
+            resourceReleasable.onRelease();
+        }
+    }
+
+    /**
+     * 资源释放回调接口
+     */
+    public interface ResourceReleasable {
+        void onRelease() throws Exception;
+    }
 }
+

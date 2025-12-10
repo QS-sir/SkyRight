@@ -12,18 +12,18 @@ import java.lang.reflect.Constructor;
 public class DynamicHookImpl extends XC_MethodHook {
 
 	private HookRegistry hookRegistry;
-	private ClassLoader baseClassLoader;
-	private ClassLoader hookClassLoader;
+	private ClassLoader systemClassLoader;
+	private ClassLoader moduleClassLoader;
 	private Context context;
 	private PackageManager pm;
 	private UserManager userManager;
 	private Object dynamicHookRegistry;
 	private String apkPath;
 
-    public DynamicHookImpl(ClassLoader hookClassLoader) {
-		this.hookRegistry = new HookRegistry(hookClassLoader);
-		this.baseClassLoader = hookRegistry.baseClassLoader();
-		this.hookClassLoader = hookRegistry.hookClassLoader();
+    public DynamicHookImpl(ClassLoader moduleClassLoader) {
+		this.hookRegistry = new HookRegistry(moduleClassLoader);
+		this.systemClassLoader = hookRegistry.getSystemClassLoader();
+		this.moduleClassLoader = hookRegistry.getModuleClassLoader();
 		this.context = hookRegistry.getContext();
 		this.pm = context.getPackageManager();
 		this.userManager = context.getSystemService(UserManager.class);
@@ -35,8 +35,8 @@ public class DynamicHookImpl extends XC_MethodHook {
 		if (apkPath == null && userManager.isUserUnlocked() && method.equals("addWindowToken")) {
 			try {
 				initDynamicHook();
-				XposedHelpers.findAndHookMethod("com.android.server.pm.PackageHandler", baseClassLoader, "handleMessage", Message.class, this);
-				hookRegistry.setIsDynamicHook(true);
+				XposedHelpers.findAndHookMethod("com.android.server.pm.PackageHandler", systemClassLoader, "handleMessage", Message.class, this);
+				hookRegistry.setDynamic(true);
 				XposedBridge.log("init dynamic hook ok");
 			} catch (Exception e) {
 				new MethodHookInit(hookRegistry);
@@ -65,7 +65,7 @@ public class DynamicHookImpl extends XC_MethodHook {
 		if (dynamicHookRegistry != null) {
 			XposedHelpers.callMethod(dynamicHookRegistry, "releaseMethodHook");
 		}
-		PathClassLoader hookClassLoader = new PathClassLoader(apkPath, hookRegistry.hookClassLoader());
+		PathClassLoader hookClassLoader = new PathClassLoader(apkPath, hookRegistry.getXposedClassLoader());
 		Class<?> classMethodHookInit = hookClassLoader.loadClass("com.lizi.skyright.MethodHookInit");
 		Class<?> classHookRegistry = hookClassLoader.loadClass("com.lizi.skyright.HookRegistry");
 		Constructor<?> conMethodHookInit = classMethodHookInit.getConstructor(classHookRegistry);
