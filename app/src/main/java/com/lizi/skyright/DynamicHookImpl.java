@@ -40,7 +40,7 @@ public class DynamicHookImpl extends XC_MethodHook {
 				initDynamicHook();
 				XposedHelpers.findAndHookMethod("com.android.server.pm.PackageHandler", systemClassLoader, "handleMessage", Message.class, this);
 				XposedBridge.log("init dynamic hook ok");
-			} catch (Exception e) {
+			} catch (ClassNotFoundException e) {
 				new MethodHookInit(hookRegistry).initMethodHook();
 				XposedBridge.log("init dynamic hook on");
 			}
@@ -51,13 +51,19 @@ public class DynamicHookImpl extends XC_MethodHook {
 
 	//初始化动态hook
 	private void initDynamicHook() throws Exception {
-		ApplicationInfo appInfo = pm.getApplicationInfo("com.lizi.skyright", 0);
+		ApplicationInfo appInfo = null;
+		try {
+			appInfo = pm.getApplicationInfo("com.lizi.skyright", 0);
+		} catch (PackageManager.NameNotFoundException e) {
+			e.fillInStackTrace();
+		}
 		if (appInfo == null || appInfo.sourceDir.equals(apkPath)) {
 			return;
 		}
 		apkPath = appInfo.sourceDir;
 		if (dynamicHookRegistry != null) {
 			XposedHelpers.callMethod(dynamicHookRegistry, "unhookAll");
+			XposedBridge.log("new init dynamic hook");
 		}
 		PathClassLoader hookClassLoader = new PathClassLoader(apkPath, hookRegistry.getXposedClassLoader());
 		Class<?> classMethodHookInit = hookClassLoader.loadClass("com.lizi.skyright.MethodHookInit");

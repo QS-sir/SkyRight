@@ -8,8 +8,9 @@ import de.robv.android.xposed.XposedBridge;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HookRegistry {
+public final class HookRegistry {
 
+	//1. 保存hook方法，用于取消hook
     private final List<XC_MethodHook.Unhook> hooks = new ArrayList<>();
 
     // 2. 系统/框架层的 ClassLoader (由 ActivityManager.getService() 获取)
@@ -68,6 +69,9 @@ public class HookRegistry {
         return moduleClassLoader;
     }
 
+	/**
+     * 获取 Xposed ClassLoader
+     */
     public ClassLoader getXposedClassLoader() {
         return XposedBridge.BOOTCLASSLOADER;
     }
@@ -80,7 +84,7 @@ public class HookRegistry {
     }
 
     /**
-     * 添加一个 Method Hook
+     * 添加 Method Hook
      */
     public void addMethodHook(XC_MethodHook.Unhook hook) {
 		//只有动态hook才能添加对象
