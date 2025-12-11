@@ -70,20 +70,12 @@ public final class HookRegistry {
         return moduleClassLoader;
     }
 
-	/**
-     * 获取 Xposed ClassLoader
-     */
-    public ClassLoader getXposedClassLoader() {
-        return XposedBridge.BOOTCLASSLOADER;
-    }
-
     /**
      * 获取宿主应用上下文
      */
     public Context getContext() {
         return context;
     }
-    
     
     
     public void findAndHookConstructor(Class<?> clazz,Object... parameterTypesAndCallback){

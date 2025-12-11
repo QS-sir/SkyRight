@@ -65,7 +65,7 @@ public class DynamicHookImpl extends XC_MethodHook {
 			XposedHelpers.callMethod(dynamicHookRegistry, "unhookAll");
 			XposedBridge.log("new init dynamic hook");
 		}
-		PathClassLoader hookClassLoader = new PathClassLoader(apkPath, hookRegistry.getXposedClassLoader());
+		PathClassLoader hookClassLoader = new PathClassLoader(apkPath, XposedBridge.BOOTCLASSLOADER);
 		Class<?> classMethodHookInit = hookClassLoader.loadClass("com.lizi.skyright.MethodHookInit");
 		Class<?> classHookRegistry = hookClassLoader.loadClass("com.lizi.skyright.HookRegistry");
 		Constructor<?> conMethodHookInit = classMethodHookInit.getConstructor(classHookRegistry);
