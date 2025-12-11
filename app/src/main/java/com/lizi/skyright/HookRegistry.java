@@ -7,6 +7,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import java.util.ArrayList;
 import java.util.List;
+import de.robv.android.xposed.XposedHelpers;
 
 public final class HookRegistry {
 
@@ -82,11 +83,30 @@ public final class HookRegistry {
     public Context getContext() {
         return context;
     }
+    
+    
+    
+    public void findAndHookConstructor(Class<?> clazz,Object... parameterTypesAndCallback){
+        addMethodHook(XposedHelpers.findAndHookConstructor(clazz,parameterTypesAndCallback));
+    }
+    
+    public void findAndHookConstructor(String className, ClassLoader classLoader, Object... parameterTypesAndCallback){
+        addMethodHook(XposedHelpers.findAndHookConstructor(className,classLoader,parameterTypesAndCallback));
+    }
+    
+    public void findAndHookMethod(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback) {
+        addMethodHook(XposedHelpers.findAndHookMethod(className,classLoader, methodName, parameterTypesAndCallback));
+    }
 
+    public void findAndHookMethod(Class<?> clazz, String methodName, Object... parameterTypesAndCallback) {
+        addMethodHook(XposedHelpers.findAndHookMethod(clazz, methodName, parameterTypesAndCallback));
+    }
+
+    
     /**
      * 添加 Method Hook
      */
-    public void addMethodHook(XC_MethodHook.Unhook hook) {
+    private void addMethodHook(XC_MethodHook.Unhook hook) {
 		//只有动态hook才能添加对象
 		if (dynamic) {
 			hooks.add(hook);
@@ -98,6 +118,9 @@ public final class HookRegistry {
      */
 
     public void unhookAll() throws Exception {
+        if (resourceReleasable != null) {
+            resourceReleasable.onRelease();
+        }
         if (hooks.isEmpty()) {
             return;
         }
@@ -106,9 +129,6 @@ public final class HookRegistry {
             hook.unhook();
         }
         hooks.clear(); // 清空列表，防止内存泄漏或重复操作
-        if (resourceReleasable != null) {
-            resourceReleasable.onRelease();
-        }
     }
 
     /**
