@@ -14,33 +14,50 @@
             android:name="com.lizi.skyright.MainActivity"
             android:label="@string/app_name"
             android:exported="true">
+
             <intent-filter>
+
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
+
             </intent-filter>
-			
+
         </activity>
-	
-		<meta-data
-			android:name="xposedmodule"
-			android:value="true" />
-		
-		<meta-data
-			android:name="xposeddescription"
-			android:value="@string/xposed_introduce" />
-		
-		<meta-data
-			android:name="xposedminversion"
-			android:value="82" />
-		
-		<meta-data
-            android:name="xposedscope"
-            android:resource="@array/xposed_scope" />
-		
+
         <meta-data
-          android:name="android.max_aspect"
-          android:value="4.0"/>
+            android:name="xposedmodule"
+            android:value="true"/>
+
+        <meta-data
+            android:name="xposeddescription"
+            android:value="@string/xposed_introduce"/>
+
+        <meta-data
+            android:name="xposedminversion"
+            android:value="82"/>
+
+        <meta-data
+            android:name="xposedscope"
+            android:resource="@array/xposed_scope"/>
+
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="4.0"/>
+
+        <service 
+            android:name="com.lizi.skyright.BridgeService"
+            android:label="@string/bridging_service"
+            android:exported="true"
+            android:permission="android.permission.INTERACT_ACROSS_USERS">
+
+            <intent-filter>
+                
+                <action android:name="com.lizi.skyright.BridgeService"/>
+                    
+            </intent-filter>
+            
+        </service>
 
     </application>
 

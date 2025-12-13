@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 使用 ripple 标签作为根节点 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#FF0463D6"> <!-- 水波纹的颜色：半透明白色，叠加在背景上产生变亮/变暗效果 -->
+
+    <!-- 这里的 item 标签定义了“静态”的背景 -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <!-- 正常状态的背景色 -->
+            <solid android:color="#FF6FAFFC" />
+            <!-- 描边 -->
+            <stroke
+                android:width="2dp"
+                android:color="#FF4C9CFC" />
+        </shape>
+    </item>
+</ripple>
+

@@ -122,7 +122,20 @@ public final class HookRegistry {
         }
         hooks.clear(); // 清空列表，防止内存泄漏或重复操作
     }
-
+    
+    
+    //暂停hook不释放资源
+    public void pauseAllHook(){
+        if (hooks.isEmpty()) {
+            return;
+        }
+        // 遍历并取消所有 Hook
+        for (XC_MethodHook.Unhook hook : hooks) {
+            hook.unhook();
+        }
+        hooks.clear(); 
+    }
+    
     /**
      * 资源释放回调接口
      */

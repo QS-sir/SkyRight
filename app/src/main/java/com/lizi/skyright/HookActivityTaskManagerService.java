@@ -14,7 +14,7 @@ public class HookActivityTaskManagerService extends XC_MethodHook {
 
 	@Override
 	protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-		
+		XposedBridge.log("调用者："+Binder.getCallingUid());
 	}
 	
     
