@@ -6,6 +6,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Binder;
+import android.os.Parcel;
 import android.os.RemoteException;
 import com.lizi.skyright.service.ISystemServerManager;
 import de.robv.android.xposed.XposedBridge;
@@ -21,21 +22,29 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import android.content.pm.PackageManager.NameNotFoundException;
 
 public class SystemServerManagerImpl extends ISystemServerManager.Stub {
 
     public static final String TAG = "SystemServerManagerImpl";
+    public static final String MONITOR_PACKAGES_ACTIVITY = "monitor_packages_activity";
+    public static final String MODIFY_PACKAGES_START_ACTIVITY = "modify_packages_start_activity";
+    public static final String MONITOR_ACTIVITYS = "monitor_activitys";
+    public static final String PACKAGES_HIDE_ACCESSIBILITY = "packages_hide_accessibility";
+    public static final String SUNDRIES_DATA = "sundries_data";
+    public static final String EXPAND_HOOK_PACKAGES = "expand_hook_packages";
+    public static final String WHITE_LIST_PACKAGES = "white_list_packages";
+    
     private HookRegistry hookRegistry;
     private PackageManager pm;
     private ActivityManager am;
     private File file;
     private DataUpdateCallback dataUpdateCallback;
     private JSONObject json;
-    private JSONArray monitorPackagesActivity;
-    private JSONObject modifyStartActivityList;
-    private JSONObject monitorActivityList;
-	private JSONArray packageHideAccessibilityList;
+    private JSONArray monitorPackagesActivityBehaviour;
+    private JSONObject modifyPackagesStartActivity;
+    private JSONObject monitorActivityBehaviour;
+    private JSONArray whiteListPackages;
+	private JSONArray packagesHideAccessibility;
     private JSONObject sundriesData;
     private JSONObject expandHookPackages;
 
@@ -53,55 +62,67 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
         try {
             String data = readData();
             json = new JSONObject(data);
-            String value1 = "monitor_packages_activity";
-            String value2 = "modify_start_activity_list";
-            String value3 = "monitor_activity_list";
-            String value4 = "package_hide_accessibility_list";
-            String value5 = "sundries_data";
-            String value6 = "expand_hook_packages";
-            if (json.has(value1)) {
-                monitorPackagesActivity = json.getJSONArray(value1);
-            } else {
-                json.put(value1, new JSONArray());
-                monitorPackagesActivity = json.getJSONArray(value1);
-            }
-            if (json.has(value2)) {
-                modifyStartActivityList = json.getJSONObject(value2);
-            } else {
-                json.put(value2, new JSONObject());
-                modifyStartActivityList = json.getJSONObject(value2);
-            }
-
-            if (json.has(value3)) {
-                monitorActivityList = json.getJSONObject(value3);
-            } else {
-                json.put(value3, new JSONObject());
-                monitorActivityList = json.getJSONObject(value3);
-            }
-            if (json.has(value4)) {
-                packageHideAccessibilityList = json.getJSONArray(value4);
-            } else {
-                json.put(value4, new JSONArray());
-                packageHideAccessibilityList = json.getJSONArray(value4);
-            }
-            if (json.has(value5)) {
-                sundriesData = json.getJSONObject(value5);
-            } else {
-                json.put(value5, new JSONObject());
-                sundriesData = json.getJSONObject(value5);
-            }
-            if(json.has(value6)){
-                expandHookPackages = json.getJSONObject(value6);
-            }else{
-                json.put(value6,new JSONObject());
-                expandHookPackages = json.getJSONObject(value6);
-            }
+            initDistribute();
             dataUpdateCallback.updateAllData(json.toString());
         } catch (JSONException e) {
             XposedBridge.log(TAG + "  initData  error:" + e.toString());
         }
     }
+    
+    private void initDistribute() throws JSONException{
+        String value1 = MONITOR_PACKAGES_ACTIVITY ;
+        String value2 = MODIFY_PACKAGES_START_ACTIVITY;
+        String value3 = MONITOR_ACTIVITYS;
+        String value4 = PACKAGES_HIDE_ACCESSIBILITY;
+        String value5 = SUNDRIES_DATA;
+        String value6 = EXPAND_HOOK_PACKAGES;
+        String value7 = WHITE_LIST_PACKAGES;
+        if (json.has(value1)) {
+            monitorPackagesActivityBehaviour = json.getJSONArray(value1);
+        } else {
+            json.put(value1, new JSONArray());
+            monitorPackagesActivityBehaviour = json.getJSONArray(value1);
+        }
+        if (json.has(value2)) {
+            modifyPackagesStartActivity = json.getJSONObject(value2);
+        } else {
+            json.put(value2, new JSONObject());
+            modifyPackagesStartActivity = json.getJSONObject(value2);
+        }
 
+        if (json.has(value3)) {
+            monitorActivityBehaviour = json.getJSONObject(value3);
+        } else {
+            json.put(value3, new JSONObject());
+            monitorActivityBehaviour = json.getJSONObject(value3);
+        }
+        if (json.has(value4)) {
+            packagesHideAccessibility = json.getJSONArray(value4);
+        } else {
+            json.put(value4, new JSONArray());
+            packagesHideAccessibility = json.getJSONArray(value4);
+        }
+        if (json.has(value5)) {
+            sundriesData = json.getJSONObject(value5);
+        } else {
+            json.put(value5, new JSONObject());
+            sundriesData = json.getJSONObject(value5);
+        }
+        if (json.has(value6)) {
+            expandHookPackages = json.getJSONObject(value6);
+        } else {
+            json.put(value6, new JSONObject());
+            expandHookPackages = json.getJSONObject(value6);
+        }
+        if (json.has(value7)) {
+            whiteListPackages = json.getJSONArray(value7);
+        } else {
+            json.put(value7, new JSONArray());
+            whiteListPackages = json.getJSONArray(value7);
+        }
+    }
+    
+    
     private String readData() {
         InputStreamReader isr = null;
         BufferedReader read = null;
@@ -128,14 +149,60 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     }
 
     @Override
+    public void setPackageHideAccessibilityStatus(String packageName, boolean b) throws RemoteException {
+        if (b) {
+            packagesHideAccessibility.put(packageName);
+        } else {
+            for (int i = packagesHideAccessibility.length() - 1; i >= 0; i--) {
+                try {
+                    String pkg = packagesHideAccessibility.getString(i);
+                    if (pkg.equals(packageName)) {
+                        packagesHideAccessibility.remove(i);
+                        break; 
+                    }
+                } catch (JSONException e) {
+                    LogManager.log(TAG, "setPackageHideAccessibilityStatus JSONException error: " + e.toString());
+                }
+            }
+        }
+        dataUpdateCallback.updatePackagesHideAccessibility(JsonParser.getListData(packagesHideAccessibility.toString()));
+        try {
+            writeFile();
+        } catch (Exception e) {
+            LogManager.log(TAG, "setPackageHideAccessibilityList Exception error: " + e.toString());
+		}
+    }
+
+    private int getParcelSize(List<ApplicationInfo> list) {
+        Parcel parcel = Parcel.obtain();
+        try {
+            // 写入列表大小
+            parcel.writeInt(list.size());
+            // 遍历写入每个对象
+            for (ApplicationInfo info : list) {
+                parcel.writeParcelable(info, 0);
+            }
+            return parcel.dataSize();
+        } finally {
+            parcel.recycle();
+        }
+    }
+
+    @Override
+    public int getParcelSize() throws RemoteException {
+        return getParcelSize(getInstalledApplications(0));
+    }
+
+
+    @Override
     public void setEnabledHookPackage(String packageName, boolean enable) throws RemoteException {
         long origId = Binder.clearCallingIdentity();
         try {
             expandHookPackages.put(packageName, enable);
-            dataUpdateCallback.setEnabledHookPackage(packageName,enable);
+            dataUpdateCallback.setEnabledHookPackage(packageName, enable);
         } catch (JSONException e) {
             LogManager.log(TAG, " setEnabledHookPackage JSONException error:" + e.toString());
-        }finally {
+        } finally {
             Binder.restoreCallingIdentity(origId);
         }
         try {
@@ -144,9 +211,9 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
             LogManager.log(TAG, "setEnabledHookPackage Exception error: " + e.toString());
 		}
     }
-    
-    public void checkExpandPackageIsUnInstall(String packageName){
-        if(expandHookPackages.has(packageName)){
+
+    public void checkExpandPackageIsUnInstall(String packageName) {
+        if (expandHookPackages.has(packageName)) {
             expandHookPackages.remove(packageName);
             try {
                 writeFile();
@@ -160,7 +227,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     public boolean isDynamicHook() throws RemoteException {
         return hookRegistry.isDynamic();
     }
-    
+
 
     @Override
     public boolean isEnabledHookPackage(String packagekName) throws RemoteException {
@@ -173,13 +240,13 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
 		}
         return false;
     }
-    
-    private void pauseExpandHook(){
+
+    private void pauseExpandHook() {
         Iterator<String> keys = expandHookPackages.keys();
-        while(keys.hasNext()){
+        while (keys.hasNext()) {
             String k = keys.next();
             try {
-                expandHookPackages.put(k,false);
+                expandHookPackages.put(k, false);
             } catch (JSONException e) {
                 LogManager.log(TAG, " pauseExpandHook JSONException error:" + e.toString());
             }
@@ -192,12 +259,12 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
         try {
             sundriesData.put("pause_hooks", b);
             dataUpdateCallback.setPauseAllHook(b);
-            if(b){
+            if (b) {
                 pauseExpandHook();
             }
         } catch (JSONException e) {
             LogManager.log(TAG, " setPauseAllHook JSONException error:" + e.toString());
-        }finally {
+        } finally {
             Binder.restoreCallingIdentity(origId);
         }
         try {
@@ -221,7 +288,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
 
     @Override
     public String getStorageData() throws RemoteException {
-        return null;
+        return json.toString();
     }
 
     @Override
@@ -264,6 +331,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     @Override
     public List<ApplicationInfo> getInstalledApplications(int flags) throws RemoteException {
         long origId = Binder.clearCallingIdentity();
+
         try {
             return pm.getInstalledApplications(flags);
         } finally {

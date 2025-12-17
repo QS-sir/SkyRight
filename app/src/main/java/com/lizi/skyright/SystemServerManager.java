@@ -6,11 +6,11 @@ import com.lizi.skyright.service.ISystemServerManager;
 import java.util.List;
 import java.util.ArrayList;
 import android.os.RemoteException;
+import android.content.pm.PackageInfo;
 
 public final class SystemServerManager {
 
     public static final String TAG = "SystemServerManager";
-
     private static volatile SystemServerManager systemServerManager;
     private volatile ISystemServerManager service;
 
@@ -30,8 +30,36 @@ public final class SystemServerManager {
         return systemServerManager;
     }
 
+
     public boolean isInitService() {
         return service != null;
+    }
+
+    public String getStorageData() {
+        String st = "{}";
+        try {
+            st = service.getStorageData();
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "getStorageData error:" + e.toString());
+        }
+        return st;
+    }
+
+    public int getParcelSize() {
+        try {
+            return service.getParcelSize();
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "getParcelSize error:" + e.toString());
+        }
+        return 0;
+    }
+
+    public void setPackageHideAccessibilityStatus(String packageName, boolean b) {
+        try {
+            service.setPackageHideAccessibilityStatus(packageName, b);
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "setPackageHideAccessibilityStatus error:" + e.toString());
+        }
     }
 
     public List<ApplicationInfo> getInstalledApplications() {
@@ -40,30 +68,16 @@ public final class SystemServerManager {
 
     public List<ApplicationInfo> getInstalledApplications(int flags) {
         List<ApplicationInfo> list = new ArrayList<>();
-        ISystemServerManager localService = this.service;
-        if (localService != null) {
-            try {
-                List<ApplicationInfo> remoteList = localService.getInstalledApplications(flags);
-                if (remoteList != null) {
-                    list = remoteList;
-                }
-            } catch (RemoteException e) {
-                LogManager.log(TAG, "getInstalledApplications RemoteException: " + e.toString());
-                List<String> appList = getPackageNames();
-                int size = appList.size();
-                for (int i = 0; i < size; i++) {
-                    list.add(getApplicationInfo(appList.get(i)));
-                }
-            }
-        } else {
-            LogManager.log(TAG, "Service not connected. Returning empty list");
+        List<String> packageNames = getPackageNames();
+        for (String packageName : packageNames) {
+            list.add(getApplicationInfo(packageName, flags));
         }
         return list;
     }
-    
-    public boolean isDynamicHook(){
+
+    public boolean isDynamicHook() {
         try {
-           return service.isDynamicHook();
+            return service.isDynamicHook();
         } catch (RemoteException e) {
             LogManager.log(TAG, "isDynamicHook error:" + e.toString());
         }
@@ -143,6 +157,16 @@ public final class SystemServerManager {
             LogManager.log(TAG, "isEnabledHookPackage error:" + e.toString());
         }
         return false;
+    }
+
+    public PackageInfo getPackageInfo(String packageName, int flags) {
+        PackageInfo info = new PackageInfo();
+        try {
+            return service.getPackageInfo(packageName, flags);
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "getPackageInfo error:" + e.toString());
+        }
+        return info;
     }
 
 }

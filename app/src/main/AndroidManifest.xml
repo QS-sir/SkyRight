@@ -59,10 +59,15 @@
 
         </service>
 
-        <activity 
+        <activity
             android:name="com.lizi.skyright.HookExtensionActivity"
             android:label="@string/hook_extension_activity"
-            android:exported="true"/>
+            android:exported="false"/>
+
+        <activity 
+            android:name="com.lizi.skyright.ActivityPermissionManage"
+            android:label="@string/activity_permission_manage"
+            android:exported="false"/>
 
     </application>
 

@@ -20,9 +20,8 @@ public class HookInit implements IXposedHookLoadPackage{
 		}else if("com.android.providers.settings".equals(lpparam.packageName)){
             ClassLoader cs = ActivityThread.currentApplication().getClassLoader();
             Class css = XposedHelpers.findClass("com.android.server.wm.WindowManagerService",cs);
-			XposedHelpers.findAndHookMethod("com.android.server.am.ActivityManagerService",cs, "setWindowManager",css,new DynamicHookImpl(lpparam.classLoader));
+			XposedHelpers.findAndHookMethod("com.android.server.am.ActivityManagerService",cs, "setWindowManager",css,new DynamicHookInit(lpparam.classLoader));
 		}
-		
 	}
 
 }

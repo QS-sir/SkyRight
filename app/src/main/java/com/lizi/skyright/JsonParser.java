@@ -8,6 +8,8 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.util.Set;
+import java.util.HashSet;
 
 public final class JsonParser {
 
@@ -16,20 +18,30 @@ public final class JsonParser {
     private JsonParser() {
     }
     
-    public static List<String> getListData(String data, String key) {
-        List<String> list = new ArrayList<>();
+    public static Set<String> getListData(String data, String key) {
+        Set<String> list = new HashSet<>();
         if (data == null || key == null) return list;
         try {
             JSONObject jsonObject = new JSONObject(data);
-            if (jsonObject.has(key)) {
-                JSONArray jsonArray = jsonObject.getJSONArray(key);
-                int length = jsonArray.length();
-                for (int i = 0; i < length; i++) {
-                    // 防止数组中存在 null 值
-                    String item = jsonArray.optString(i, null);
-                    if (item != null) {
-                        list.add(item);
-                    }
+            list = getListData(jsonObject.getJSONArray(key).toString());
+        } catch (JSONException e) {
+            LogManager.log(TAG, "getListData error: " + e.toString());
+        }
+        return list;
+    }
+    
+    
+    public static Set<String> getListData(String data){
+        Set<String> list = new HashSet<>();
+        if (data == null) return list;
+        try {
+            JSONArray jsonArray = new JSONArray(data);
+            int length = jsonArray.length();
+            for (int i = 0; i < length; i++) {
+                // 防止数组中存在 null 值
+                String item = jsonArray.optString(i, null);
+                if (item != null) {
+                    list.add(item);
                 }
             }
         } catch (JSONException e) {
@@ -37,7 +49,6 @@ public final class JsonParser {
         }
         return list;
     }
-
     
     public static Map<String, String> getMapStringData(String data, String key) {
         Map<String, String> map = new HashMap<>();

@@ -13,5 +13,7 @@ interface ISystemServerManager{
     void setEnabledHookPackage(String packageName, boolean enable);
     boolean isEnabledHookPackage(String packagekName);
     boolean isDynamicHook();
+    void setPackageHideAccessibilityStatus(String packageName,boolean b);
+    int getParcelSize();
 }
 

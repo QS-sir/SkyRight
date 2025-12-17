@@ -28,10 +28,11 @@
 	<Button
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:text="活动相关权限"
+		android:text="活动权限管理"
 		android:background="@drawable/btn_custom_blue"
 		android:textColor="#FFFFFFFF"
-		android:elevation="15dp"/>
+		android:elevation="15dp"
+		android:id="@+id/activitymainButton1"/>
 
 </LinearLayout>
 

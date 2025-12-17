@@ -8,14 +8,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements BridgeManager.ConnectionCallback {
+public class MainActivity extends Activity implements BridgeManager.ConnectionCallback,View.OnClickListener {
 
     private TextView phoneInfo;
+    private Button packageActivityManage;
     private AdditionalFunctionDialog additionalFunctionDialog;
+    private HideAccessibilityStatusDialog hideAccessibilityDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,11 +40,11 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(1, 1, 1, "模块运行日志");
-        menu.add(2, 2, 2, "活动监控日志");
-		menu.add(3, 3, 3, "附加功能");
-        menu.add(4, 4, 4, "模块扩展");
-        menu.add(5, 5, 5, "日志");
+        menu.add(1, 1, 1, "服务运行日志");
+        menu.add(2, 2, 2, "应用运行日志");
+		menu.add(3, 3, 3, "扩展模块管理");
+        menu.add(4, 4, 4, "隐藏无障碍服务");
+        menu.add(9, 9, 9, "附加功能");
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -52,19 +56,24 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
         }
         switch (item.getItemId()) {
             case 1:
-
+                AlertDialog dialog = new AlertDialog.Builder(this)
+                    .setTitle("数据大小")
+                    .setMessage(""+SystemServerManager.getManagerInstance().getParcelSize())
+                    .setPositiveButton(android.R.string.ok,null)
+                    .create();
+                dialog.show();
                 break;
             case 2:
-
+                showLoges();
                 break;
             case 3:
-                additionalFunctionDialog.show();
-                break;
-            case 4:
                 startActivity(new Intent(this, HookExtensionActivity.class));
                 break;
-            case 5:
-                showLoges();
+            case 4:
+                hideAccessibilityDialog.show();
+                break;
+            case 9:
+                additionalFunctionDialog.show();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -73,7 +82,7 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
 
     private void showLoges() {
         AlertDialog dialog = new AlertDialog.Builder(this)
-            .setTitle("标题")
+            .setTitle("应用运行日志")
             .setMessage("" + LogManager.getAllLogs())
             .setPositiveButton(android.R.string.ok, null)
             .create();
@@ -89,6 +98,8 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
     private void initViews() {
         phoneInfo = findViewById(R.id.activitymainTextView1);
         phoneInfo.setText(getInfo());
+        packageActivityManage = findViewById(R.id.activitymainButton1);
+        packageActivityManage.setOnClickListener(this);
     }
 
     private String getInfo() {
@@ -98,19 +109,31 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
         sb.append("\n安卓版本：" + Build.VERSION.RELEASE);
         sb.append("\n内核版本：" + System.getProperty("os.version") + "\r");
         boolean b = SystemServerManager.getManagerInstance().isDynamicHook();
-        sb.append("\n模块模式：" + (b ? "动态模式" : "静态模式"));
+        sb.append("\nHook模式：" + (b ? "动态模式" : "静态模式"));
         return sb.toString();
     }
 
     @Override
+    public void onClick(View view) {
+        if(view == packageActivityManage){
+            startActivity(new Intent(this,ActivityPermissionManage.class));
+        }
+    }
+
+    @Override
     public void onConnected() {
-        setActionBarText(getResources().getString(R.string.xposed_activated) + "\t系统服务已连接");
-        init();
-        Toast.makeText(getApplication(), "系统服务已连接", Toast.LENGTH_SHORT).show();
+        if (SystemServerManager.getManagerInstance().isInitService()) {
+            setActionBarText(getResources().getString(R.string.xposed_activated) + "\t系统服务已连接");
+            init();
+            Toast.makeText(getApplication(), "系统服务已连接", Toast.LENGTH_SHORT).show();
+        }else{
+            Toast.makeText(getApplication(), "服务连接异常", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void init() {
         additionalFunctionDialog = new AdditionalFunctionDialog(this);
+        hideAccessibilityDialog = new HideAccessibilityStatusDialog(this);
         initViews();
     }
 

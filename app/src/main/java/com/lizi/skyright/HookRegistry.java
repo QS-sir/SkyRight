@@ -1,18 +1,17 @@
 package com.lizi.skyright;
 
-import android.app.ActivityManager;
 import android.app.ActivityThread;
 import android.content.Context;
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import java.util.ArrayList;
-import java.util.List;
 import de.robv.android.xposed.XposedHelpers;
+import java.util.HashSet;
+import java.util.Set;
+import de.robv.android.xposed.XposedBridge;
 
 public final class HookRegistry {
 
 	//1. 保存hook方法，用于取消hook
-    private final List<XC_MethodHook.Unhook> hooks = new ArrayList<>();
+    private final Set<XC_MethodHook.Unhook> hooks = new HashSet<>();
 
     // 2. 系统/框架层的 ClassLoader (由 ActivityManager.getService() 获取)
     private final ClassLoader systemClassLoader;
@@ -33,7 +32,7 @@ public final class HookRegistry {
         this.moduleClassLoader = moduleClassLoader;
         this.context = ActivityThread.currentApplication();
         this.systemClassLoader = context.getClassLoader();
-        
+
     }
 
     /**
@@ -77,25 +76,29 @@ public final class HookRegistry {
     public Context getContext() {
         return context;
     }
-    
-    
-    public void findAndHookConstructor(Class<?> clazz,Object... parameterTypesAndCallback){
-        addMethodHook(XposedHelpers.findAndHookConstructor(clazz,parameterTypesAndCallback));
+
+
+    public void findAndHookConstructor(Class<?> clazz, Object... parameterTypesAndCallback) {
+        addMethodHook(XposedHelpers.findAndHookConstructor(clazz, parameterTypesAndCallback));
     }
-    
-    public void findAndHookConstructor(String className, ClassLoader classLoader, Object... parameterTypesAndCallback){
-        addMethodHook(XposedHelpers.findAndHookConstructor(className,classLoader,parameterTypesAndCallback));
+
+    public void findAndHookConstructor(String className, ClassLoader classLoader, Object... parameterTypesAndCallback) {
+        addMethodHook(XposedHelpers.findAndHookConstructor(className, classLoader, parameterTypesAndCallback));
     }
-    
+
     public void findAndHookMethod(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback) {
-        addMethodHook(XposedHelpers.findAndHookMethod(className,classLoader, methodName, parameterTypesAndCallback));
+        addMethodHook(XposedHelpers.findAndHookMethod(className, classLoader, methodName, parameterTypesAndCallback));
     }
 
     public void findAndHookMethod(Class<?> clazz, String methodName, Object... parameterTypesAndCallback) {
         addMethodHook(XposedHelpers.findAndHookMethod(clazz, methodName, parameterTypesAndCallback));
     }
 
-    
+
+    public void hookAllMethods(Class<?> hookClass, String methodName, XC_MethodHook callback) {
+        hooks.addAll(XposedBridge.hookAllMethods(hookClass, methodName, callback));
+    }
+
     /**
      * 添加 Method Hook
      */
@@ -120,10 +123,10 @@ public final class HookRegistry {
         }
         hooks.clear(); // 清空列表，防止内存泄漏或重复操作
     }
-    
-    
+
+
     //暂停hook不释放资源
-    public void pauseAllHook(){
+    public void pauseAllHook() {
         if (hooks.isEmpty()) {
             return;
         }
@@ -133,7 +136,7 @@ public final class HookRegistry {
         }
         hooks.clear(); 
     }
-    
+
     /**
      * 资源释放回调接口
      */

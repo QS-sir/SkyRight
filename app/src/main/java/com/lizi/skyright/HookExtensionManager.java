@@ -44,7 +44,7 @@ public class HookExtensionManager {
 
     public void init() {
         try {
-            JSONObject json = new JSONObject(jsonData).getJSONObject("expand_hook_packages");
+            JSONObject json = new JSONObject(jsonData).getJSONObject(SystemServerManagerImpl.EXPAND_HOOK_PACKAGES);
             Iterator<String> keys = json.keys();
             while (keys.hasNext()) {
                 String packageName = keys.next();

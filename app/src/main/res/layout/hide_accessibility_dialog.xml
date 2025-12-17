@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:padding="12dp"
+	android:gravity="top|center">
+
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="隐藏无障碍状态"
+		android:layout_marginBottom="8dp"
+		android:textColor="#FF579FFF"
+		android:textSize="15sp"
+		android:textStyle="bold"/>
+
+	<EditText
+		android:layout_width="match_parent"
+		android:ems="10"
+		android:layout_height="wrap_content"
+		android:padding="8dp"
+		android:background="@drawable/radius"
+		android:layout_marginBottom="8dp"
+		android:id="@+id/hideaccessibilitydialogEditText1"
+		android:hint="搜索应用"
+		android:textColor="#FF579FFF"
+		android:textColorHint="#B2579FFF"/>
+
+	<ListView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:dividerHeight="8dp"
+		android:divider="@null"
+		android:id="@+id/hideaccessibilitydialogListView1"/>
+
+</LinearLayout>
+

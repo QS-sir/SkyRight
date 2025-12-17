@@ -5,5 +5,6 @@
     <string name="xposed_unactivated">"Xposed: Unactivated"</string>
 	<string name="xposed_introduce">扩展更多系统权限管理，真正掌控手机</string>
     <string name="bridging_service">桥接服务</string>
-    <string name="hook_extension_activity">模块扩展</string>
+    <string name="hook_extension_activity">扩展模块管理</string>
+    <string name="activity_permission_manage">应用活动管理</string>
 </resources>

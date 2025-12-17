@@ -12,7 +12,7 @@ import de.robv.android.xposed.XposedHelpers;
 import java.lang.reflect.Constructor;
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
 
-public class DynamicHookImpl extends XC_MethodHook {
+public class DynamicHookInit extends XC_MethodHook {
 
 	private HookRegistry hookRegistry;
 	private ClassLoader systemClassLoader;
@@ -23,7 +23,7 @@ public class DynamicHookImpl extends XC_MethodHook {
 	private volatile Object dynamicHookRegistry;
     private Object dynamicHook;
 
-    public DynamicHookImpl(ClassLoader moduleClassLoader) {
+    public DynamicHookInit(ClassLoader moduleClassLoader) {
 		this.hookRegistry = new HookRegistry(moduleClassLoader);
 		this.systemClassLoader = hookRegistry.getSystemClassLoader();
 		this.moduleClassLoader = hookRegistry.getModuleClassLoader();
@@ -83,9 +83,11 @@ public class DynamicHookImpl extends XC_MethodHook {
             dynamicHook = conMethodHookInit.newInstance(hook);
             XposedHelpers.callMethod(dynamicHook, "initDynamicMethodHook");
             hookRegistry.setDynamic(true);
+            XposedBridge.log("dynamic hook mode init");
         } catch (Exception e) {
             methodHookInit = new MethodHookInit(hookRegistry);
             methodHookInit.initMethodHook();
+            XposedBridge.log("static hook mode init");
         }
         XposedHelpers.findAndHookMethod("com.android.server.pm.PackageHandler", systemClassLoader, "handleMessage", Message.class, this);
 	}
