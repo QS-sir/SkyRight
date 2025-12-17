@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 public interface DataUpdateCallback {
-    
-    void updataAllData(String data);
-    void updataModifyStartActivityPackages(Map<String, String> data);
-    void updataMonitorPackagesActivity(List<String> data);
-    void updataMonitorActivitys(Map<String,Map<String,String>> data);
-    void updataHideAccessibilityPackages(List<String> data);
+    void updateAllData(String data);
+    void updateModifyStartActivityPackages(Map<String, String> data);
+    void updateMonitorPackagesActivity(List<String> data);
+    void updateMonitorActivitys(Map<String,Map<String,String>> data);
+    void updateHideAccessibilityPackages(List<String> data);
     void setPauseAllHook(boolean b);
     void setOneplusHideRootStatus(boolean b);
+    void setEnabledHookPackage(String packageName, boolean enable);
 }

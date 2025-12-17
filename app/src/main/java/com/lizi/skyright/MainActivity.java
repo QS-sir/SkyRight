@@ -2,14 +2,15 @@ package com.lizi.skyright;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
-import android.os.Bundle;
-import android.view.WindowManager;
-import android.widget.Toast;
-import android.widget.TextView;
 import android.os.Build;
+import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity implements BridgeManager.ConnectionCallback {
 
@@ -20,6 +21,10 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (!isTaskRoot()) {
+            finish();
+            return;
+		}
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         if (!isModuleActivated()) {
             setActionBarText(getResources().getString(R.string.xposed_unactivated));
@@ -27,7 +32,6 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
             setActionBarText(getResources().getString(R.string.xposed_activated) + "\t系统服务未连接");
 		}
         initConnected();
-        initViews();
     }
 
     @Override
@@ -35,18 +39,20 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
         menu.add(1, 1, 1, "模块运行日志");
         menu.add(2, 2, 2, "活动监控日志");
 		menu.add(3, 3, 3, "附加功能");
+        menu.add(4, 4, 4, "模块扩展");
+        menu.add(5, 5, 5, "日志");
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(!SystemServerManager.getManagerInstance().isInitService()){
+        if (!SystemServerManager.getManagerInstance().isInitService()) {
             Toast.makeText(getApplication(), "服务管理器未初始化不可用", Toast.LENGTH_SHORT).show();
             return false;
         }
-        switch(item.getItemId()){
+        switch (item.getItemId()) {
             case 1:
-                
+
                 break;
             case 2:
 
@@ -54,11 +60,25 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
             case 3:
                 additionalFunctionDialog.show();
                 break;
+            case 4:
+                startActivity(new Intent(this, HookExtensionActivity.class));
+                break;
+            case 5:
+                showLoges();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
-    
-    
+
+
+    private void showLoges() {
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("标题")
+            .setMessage("" + LogManager.getAllLogs())
+            .setPositiveButton(android.R.string.ok, null)
+            .create();
+        dialog.show();
+    }
 
     private void initConnected() {
         BridgeManager.getInstance().setConnectionCallback(this);
@@ -68,15 +88,17 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
 
     private void initViews() {
         phoneInfo = findViewById(R.id.activitymainTextView1);
-        phoneInfo.setText(getPhoneInfo());
+        phoneInfo.setText(getInfo());
     }
 
-    private String getPhoneInfo() {
+    private String getInfo() {
         StringBuilder sb = new StringBuilder();
         sb.append("品牌：" + Build.BRAND);
         sb.append("\n型号：" + Build.MODEL);
         sb.append("\n安卓版本：" + Build.VERSION.RELEASE);
-        sb.append("\n内核版本：" + System.getProperty("os.version")+"\r");
+        sb.append("\n内核版本：" + System.getProperty("os.version") + "\r");
+        boolean b = SystemServerManager.getManagerInstance().isDynamicHook();
+        sb.append("\n模块模式：" + (b ? "动态模式" : "静态模式"));
         return sb.toString();
     }
 
@@ -89,6 +111,7 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
 
     private void init() {
         additionalFunctionDialog = new AdditionalFunctionDialog(this);
+        initViews();
     }
 
     private void setActionBarText(String string) {

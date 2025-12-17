@@ -31,8 +31,9 @@ public final class HookRegistry {
 
     public HookRegistry(ClassLoader moduleClassLoader) {
         this.moduleClassLoader = moduleClassLoader;
-        this.systemClassLoader = ActivityManager.getService().getClass().getClassLoader();
-        this.context = ActivityThread.currentActivityThread().getApplication();
+        this.context = ActivityThread.currentApplication();
+        this.systemClassLoader = context.getClassLoader();
+        
     }
 
     /**
@@ -99,10 +100,7 @@ public final class HookRegistry {
      * 添加 Method Hook
      */
     private void addMethodHook(XC_MethodHook.Unhook hook) {
-		//只有动态hook才能添加对象
-		if (dynamic) {
-			hooks.add(hook);
-		}
+		hooks.add(hook);
     }
 
     /**

@@ -3,6 +3,7 @@
     <string name="app_name">天权盒</string>
     <string name="xposed_activated">"Xposed: Activated"</string>
     <string name="xposed_unactivated">"Xposed: Unactivated"</string>
-	<string name ="xposed_introduce">扩展更多系统权限管理，真正掌控手机</string>
-    <string name = "bridging_service">桥接服务</string>
+	<string name="xposed_introduce">扩展更多系统权限管理，真正掌控手机</string>
+    <string name="bridging_service">桥接服务</string>
+    <string name="hook_extension_activity">模块扩展</string>
 </resources>

@@ -16,10 +16,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import android.content.pm.PackageManager.NameNotFoundException;
 
 public class SystemServerManagerImpl extends ISystemServerManager.Stub {
 
@@ -35,6 +37,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     private JSONObject monitorActivityList;
 	private JSONArray packageHideAccessibilityList;
     private JSONObject sundriesData;
+    private JSONObject expandHookPackages;
 
     public SystemServerManagerImpl(HookRegistry hookRegistry, DataUpdateCallback dataUpdateCallback) {
         this.hookRegistry = hookRegistry;
@@ -55,6 +58,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
             String value3 = "monitor_activity_list";
             String value4 = "package_hide_accessibility_list";
             String value5 = "sundries_data";
+            String value6 = "expand_hook_packages";
             if (json.has(value1)) {
                 monitorPackagesActivity = json.getJSONArray(value1);
             } else {
@@ -86,7 +90,13 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
                 json.put(value5, new JSONObject());
                 sundriesData = json.getJSONObject(value5);
             }
-            dataUpdateCallback.updataAllData(json.toString());
+            if(json.has(value6)){
+                expandHookPackages = json.getJSONObject(value6);
+            }else{
+                json.put(value6,new JSONObject());
+                expandHookPackages = json.getJSONObject(value6);
+            }
+            dataUpdateCallback.updateAllData(json.toString());
         } catch (JSONException e) {
             XposedBridge.log(TAG + "  initData  error:" + e.toString());
         }
@@ -118,12 +128,77 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     }
 
     @Override
+    public void setEnabledHookPackage(String packageName, boolean enable) throws RemoteException {
+        long origId = Binder.clearCallingIdentity();
+        try {
+            expandHookPackages.put(packageName, enable);
+            dataUpdateCallback.setEnabledHookPackage(packageName,enable);
+        } catch (JSONException e) {
+            LogManager.log(TAG, " setEnabledHookPackage JSONException error:" + e.toString());
+        }finally {
+            Binder.restoreCallingIdentity(origId);
+        }
+        try {
+            writeFile();
+        } catch (Exception e) {
+            LogManager.log(TAG, "setEnabledHookPackage Exception error: " + e.toString());
+		}
+    }
+    
+    public void checkExpandPackageIsUnInstall(String packageName){
+        if(expandHookPackages.has(packageName)){
+            expandHookPackages.remove(packageName);
+            try {
+                writeFile();
+            } catch (Exception e) {
+                LogManager.log(TAG, "setEnabledHookPackage Exception error: " + e.toString());
+            }
+        }
+    }
+
+    @Override
+    public boolean isDynamicHook() throws RemoteException {
+        return hookRegistry.isDynamic();
+    }
+    
+
+    @Override
+    public boolean isEnabledHookPackage(String packagekName) throws RemoteException {
+        try {
+            if (expandHookPackages.has(packagekName)) {
+                return expandHookPackages.getBoolean(packagekName);
+            }
+        } catch (JSONException e) {
+            LogManager.log(TAG, "isEnabledHookPackage JSONException error: " + e.toString());
+		}
+        return false;
+    }
+    
+    private void pauseExpandHook(){
+        Iterator<String> keys = expandHookPackages.keys();
+        while(keys.hasNext()){
+            String k = keys.next();
+            try {
+                expandHookPackages.put(k,false);
+            } catch (JSONException e) {
+                LogManager.log(TAG, " pauseExpandHook JSONException error:" + e.toString());
+            }
+        }
+    }
+
+    @Override
     public void setPauseAllHook(boolean b) throws RemoteException {
+        long origId = Binder.clearCallingIdentity();
         try {
             sundriesData.put("pause_hooks", b);
             dataUpdateCallback.setPauseAllHook(b);
+            if(b){
+                pauseExpandHook();
+            }
         } catch (JSONException e) {
             LogManager.log(TAG, " setPauseAllHook JSONException error:" + e.toString());
+        }finally {
+            Binder.restoreCallingIdentity(origId);
         }
         try {
             writeFile();
@@ -187,10 +262,10 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
 	}
 
     @Override
-    public List<ApplicationInfo> getInstalledApplications() throws RemoteException {
+    public List<ApplicationInfo> getInstalledApplications(int flags) throws RemoteException {
         long origId = Binder.clearCallingIdentity();
         try {
-            return pm.getInstalledApplications(0);
+            return pm.getInstalledApplications(flags);
         } finally {
             Binder.restoreCallingIdentity(origId);
 		}

@@ -45,19 +45,24 @@
             android:name="android.max_aspect"
             android:value="4.0"/>
 
-        <service 
+        <service
             android:name="com.lizi.skyright.BridgeService"
             android:label="@string/bridging_service"
             android:exported="true"
             android:permission="android.permission.INTERACT_ACROSS_USERS">
 
             <intent-filter>
-                
+
                 <action android:name="com.lizi.skyright.BridgeService"/>
-                    
+
             </intent-filter>
-            
+
         </service>
+
+        <activity 
+            android:name="com.lizi.skyright.HookExtensionActivity"
+            android:label="@string/hook_extension_activity"
+            android:exported="true"/>
 
     </application>
 
