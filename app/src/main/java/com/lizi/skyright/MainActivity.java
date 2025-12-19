@@ -57,8 +57,8 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
         switch (item.getItemId()) {
             case 1:
                 AlertDialog dialog = new AlertDialog.Builder(this)
-                    .setTitle("数据大小")
-                    .setMessage(""+SystemServerManager.getManagerInstance().getParcelSize())
+                    .setTitle("服务日志")
+                    .setMessage(""+SystemServerManager.getManagerInstance().getServiceLoges())
                     .setPositiveButton(android.R.string.ok,null)
                     .create();
                 dialog.show();
@@ -116,7 +116,7 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
     @Override
     public void onClick(View view) {
         if(view == packageActivityManage){
-            startActivity(new Intent(this,ActivityPermissionManage.class));
+            startActivity(new Intent(this,ActivityBehaviourManage.class));
         }
     }
 

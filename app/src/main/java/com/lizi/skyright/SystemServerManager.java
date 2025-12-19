@@ -35,6 +35,51 @@ public final class SystemServerManager {
         return service != null;
     }
 
+    public List<String> getServiceLoges(){
+        List<String> list = new ArrayList<>();
+        try {
+            list = service.getServiceLoges();
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "getServiceLoges error:" + e.toString());
+        }
+        return list;
+    }
+
+    public void setPackageWhiteList(String packageName, boolean b) {
+        try {
+            service.setPackageWhiteList(packageName, b);
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "RemoteException error:" + e.toString());
+        }
+    }
+
+
+    public void setMonitorPackageActivity(String packageName, boolean b) {
+        try {
+            service.setMonitorPackageActivity(packageName, b);
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "setMonitorPackageActivity error:" + e.toString());
+        }
+    }
+    
+
+    public void setMonitorActivity(String packageName, String activityName, String action) {
+        try {
+            service.setMonitorActivity(packageName, activityName, action);
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "setMonitorActivity error:" + e.toString());
+        }
+    }
+
+    public void setModifyPackageStartActivity(String packageName, String activityName) {
+        try {
+            service.setModifyPackageStartActivity(packageName, activityName);
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "setModifyPackageStartActivity error:" + e.toString());
+        }
+    }
+    
+
     public String getStorageData() {
         String st = "{}";
         try {
@@ -169,5 +214,13 @@ public final class SystemServerManager {
         return info;
     }
 
+    public String getPackageLaunchActivityName(String packageName){
+        try {
+            return service.getPackageLaunchActivityName(packageName);
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "getPackageLaunchActivityName error:" + e.toString());
+        }
+        return null;
+    }
 }
 

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:gravity="center"
+	android:padding="8dp"
+	android:background="@drawable/radius_background">
+
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+
+		<LinearLayout
+			android:orientation="horizontal"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:gravity="left|center"
+			android:layout_marginBottom="6dp">
+
+			<ImageView
+				android:layout_width="38dp"
+				android:layout_height="38dp"
+				android:id="@+id/monitoractivityitemImageView1"
+				android:layout_marginRight="8dp"/>
+
+			<LinearLayout
+				android:orientation="vertical"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content">
+
+				<LinearLayout
+					android:orientation="vertical"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:gravity="left|center">
+
+					<HorizontalScrollView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:fastScrollEnabled="false"
+						android:scrollbars="none">
+
+						<TextView
+							android:layout_width="match_parent"
+							android:layout_height="match_parent"
+							android:gravity="left|center"
+							android:textStyle="bold"
+							android:textSize="11sp"
+							android:textColor="#FFFFFFFF"
+							android:id="@+id/monitoractivityitemTextView1"/>
+
+					</HorizontalScrollView>
+
+				</LinearLayout>
+
+				<LinearLayout
+					android:orientation="vertical"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:gravity="left|center">
+
+					<HorizontalScrollView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:fastScrollEnabled="false"
+						android:scrollbars="none">
+
+						<TextView
+							android:layout_width="match_parent"
+							android:layout_height="match_parent"
+							android:gravity="left|center"
+							android:textStyle="bold"
+							android:textSize="11sp"
+							android:textColor="#FFFFFFFF"
+							android:id="@+id/monitoractivityitemTextView2"/>
+
+					</HorizontalScrollView>
+
+				</LinearLayout>
+
+			</LinearLayout>
+
+		</LinearLayout>
+
+		<LinearLayout
+			android:orientation="horizontal"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content">
+
+			<LinearLayout
+				android:orientation="horizontal"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_weight="1.0"
+				android:gravity="center">
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="match_parent"
+					android:text="默认"
+					android:gravity="center"
+					android:textColor="#FFFFFFFF"
+					android:textSize="15sp"
+					android:textStyle="bold"/>
+
+				<RadioButton
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:id="@+id/monitoractivityitemRadioButton1"/>
+
+			</LinearLayout>
+
+			<LinearLayout
+				android:orientation="horizontal"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_weight="1.0"
+				android:gravity="center">
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="match_parent"
+					android:text="询问"
+					android:gravity="center"
+					android:textColor="#FFFFFFFF"
+					android:textSize="15sp"
+					android:textStyle="bold"/>
+
+				<RadioButton
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:id="@+id/monitoractivityitemRadioButton2"/>
+
+			</LinearLayout>
+
+			<LinearLayout
+				android:orientation="horizontal"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_weight="1.0"
+				android:gravity="center">
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="match_parent"
+					android:text="拒绝"
+					android:gravity="center"
+					android:textColor="#FFFFFFFF"
+					android:textSize="15sp"
+					android:textStyle="bold"/>
+
+				<RadioButton
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:id="@+id/monitoractivityitemRadioButton3"/>
+
+			</LinearLayout>
+
+		</LinearLayout>
+
+	</LinearLayout>
+
+</LinearLayout>
+

@@ -26,6 +26,7 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
     private XC_MethodHook.Unhook hideRootHook;
     private HookExtensionManager hookExtensionManager;
     private HideAccessibilityStatus hideAccessibilityStatus;
+    private boolean isInitMethondHookCallback;
 
 	public MethodHookInit(HookRegistry hookRegistry) {
         XposedBridge.log("MethodHookInit init finish");
@@ -34,17 +35,10 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
 	}
 
 	private void init() {
-        initMethodHookCallback();
         systemServerManagerImpl = new SystemServerManagerImpl(hookRegistry, this);
         setUnInstallListener();
         registerBridgeBindingReceiver();
 	}
-
-    private void initMethodHookCallback() {
-        monitorActivityManager = new MonitorActivityManager(hookRegistry);
-        hideAccessibilityStatus = new HideAccessibilityStatus(hookRegistry.getContext());
-        hookExtensionManager = new HookExtensionManager(hookRegistry.getContext());
-    }
 
     private void registerBridgeBindingReceiver() {
         bridgeBindingReceiver = new BridgeBindingReceiver(hookRegistry, systemServerManagerImpl);
@@ -67,13 +61,25 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
 
     @Override
     public void updateAllData(String data) {
+        if (!isInitMethondHookCallback) {
+            initMethodHookCallback();
+        }
         updateModifyStartActivityPackages(JsonParser.getMapStringData(data, SystemServerManagerImpl.MODIFY_PACKAGES_START_ACTIVITY));
         updateMonitorPackagesActivity(JsonParser.getListData(data, SystemServerManagerImpl.MONITOR_PACKAGES_ACTIVITY));
         updateMonitorActivitys(JsonParser.getMapData(data, SystemServerManagerImpl.MONITOR_ACTIVITYS));
         updatePackagesHideAccessibility(JsonParser.getListData(data, SystemServerManagerImpl.PACKAGES_HIDE_ACCESSIBILITY));
-        updateWhiteListPackages(JsonParser.getListData(data,SystemServerManagerImpl.WHITE_LIST_PACKAGES));
+        updateWhiteListPackages(JsonParser.getListData(data, SystemServerManagerImpl.WHITE_LIST_PACKAGES));
         hookExtensionManager.init(data);
     }
+    
+    private void initMethodHookCallback() {
+        monitorActivityManager = new MonitorActivityManager(hookRegistry);
+        hideAccessibilityStatus = new HideAccessibilityStatus(hookRegistry.getContext());
+        hookExtensionManager = new HookExtensionManager(hookRegistry.getContext());
+        isInitMethondHookCallback = true;
+        XposedBridge.log(TAG + " initMethodHookCallback finish ");
+    }
+    
 
     @Override
     public void updateModifyStartActivityPackages(Map<String, String> data) {
@@ -93,9 +99,9 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
 
     @Override
     public void updateWhiteListPackages(Set<String> data) {
-        
+        monitorActivityManager.updateWhiteListPackages(data);
     }
-    
+
 
     @Override
     public void updatePackagesHideAccessibility(Set<String> data) {

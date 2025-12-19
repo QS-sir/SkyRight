@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:gravity="center"
+	android:padding="15dp"
+	android:background="#FFFFFFFF">
+
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginBottom="15dp">
+
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="意图申请"
+			android:textSize="16sp"
+			android:gravity="center"
+			android:textColor="#FF47ACFF"
+			android:id="@+id/activityrequestdialogTextView1"
+			android:textStyle="bold"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginBottom="8dp">
+
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="当前活动："
+			android:gravity="center"
+			android:textColor="#FF47ACFF"
+			android:textSize="12sp"
+			android:textStyle="bold"/>
+
+		<HorizontalScrollView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:fastScrollEnabled="false"
+			android:scrollbars="none">
+
+			<TextView
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="left|center"
+				android:textColor="#FF47ACFF"
+				android:textSize="11sp"
+				android:id="@+id/activityrequestdialogTextView2"/>
+
+		</HorizontalScrollView>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginBottom="8dp">
+
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="启动活动："
+			android:gravity="center"
+			android:textColor="#FF47ACFF"
+			android:textSize="12sp"
+			android:textStyle="bold"/>
+
+		<HorizontalScrollView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:fastScrollEnabled="false"
+			android:scrollbars="none">
+
+			<TextView
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="left|center"
+				android:textColor="#FF47ACFF"
+				android:textSize="11sp"
+				android:id="@+id/activityrequestdialogTextView3"/>
+
+		</HorizontalScrollView>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginBottom="13dp">
+
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="意图信息："
+			android:gravity="center"
+			android:textColor="#FF47ACFF"
+			android:textSize="12sp"
+			android:textStyle="bold"/>
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:gravity="left|center"
+			android:textColor="#FF47ACFF"
+			android:textSize="11sp"
+			android:id="@+id/activityrequestdialogTextView4"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="35dp"
+		android:gravity="right|center">
+
+		<Button
+			android:layout_width="match_parent"
+			android:layout_height="32dp"
+			android:text="始终拒绝"
+			android:textColor="#FFFFFFFF"
+			android:padding="1dp"
+			android:layout_weight="1.0"
+			android:gravity="center"
+			android:id="@+id/activityrequestdialogButton1"
+			android:background="@drawable/btn_custom_blue"
+			android:layout_marginRight="5dp"
+			android:layout_marginLeft="5dp"/>
+
+		<Button
+			android:layout_width="match_parent"
+			android:layout_height="32dp"
+			android:text="拒绝"
+			android:textColor="#FFFFFFFF"
+			android:padding="1dp"
+			android:layout_weight="1.0"
+			android:gravity="center"
+			android:id="@+id/activityrequestdialogButton2"
+			android:background="@drawable/btn_custom_blue"
+			android:layout_marginLeft="5dp"
+			android:layout_marginRight="5dp"/>
+
+		<Button
+			android:layout_width="match_parent"
+			android:layout_height="32dp"
+			android:text="允许"
+			android:textColor="#FFFFFFFF"
+			android:padding="1dp"
+			android:layout_weight="1.0"
+			android:gravity="center"
+			android:id="@+id/activityrequestdialogButton3"
+			android:background="@drawable/btn_custom_blue"
+			android:layout_marginLeft="5dp"
+			android:layout_marginRight="5dp"/>
+
+	</LinearLayout>
+
+</LinearLayout>
+

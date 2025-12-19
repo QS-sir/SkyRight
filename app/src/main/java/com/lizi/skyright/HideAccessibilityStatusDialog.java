@@ -1,13 +1,14 @@
 package com.lizi.skyright;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ListView;
 
-public class HideAccessibilityStatusDialog extends BaseDialog implements TextWatcher,Runnable{
+public class HideAccessibilityStatusDialog extends BaseDialog implements DialogInterface.OnDismissListener,TextWatcher,Runnable{
     
     private ListView appList;
     private EditText searchInput;
@@ -27,8 +28,17 @@ public class HideAccessibilityStatusDialog extends BaseDialog implements TextWat
         hideAccessibilityStatusAdapter = new HideAccessibilityStatusAdapter(getContext());
         appList.setAdapter(hideAccessibilityStatusAdapter);
         searchInput.addTextChangedListener(this);
+        setOnDismissListener(this);
     }
 
+    @Override
+    public void onDismiss(DialogInterface dialogInterface) {
+        searchInput.setText(null);
+    }
+
+
+    
+    
     @Override
     public void run() {
         hideAccessibilityStatusAdapter.notifyDataSetChanged(search);

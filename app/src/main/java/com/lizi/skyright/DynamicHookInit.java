@@ -49,8 +49,7 @@ public class DynamicHookInit extends XC_MethodHook {
     private void dynamicHook(String packageName) throws Exception {
         if (hookRegistry.isDynamic()) {
             if ("com.lizi.skyright".equals(packageName)) {
-                Object hook = dynamicHookRegistry;
-                XposedHelpers.callMethod(hook, "unhookAll");
+                XposedHelpers.callMethod(dynamicHookRegistry, "unhookAll");
                 XposedBridge.log("new init dynamic hook");
                 String apkPath = pm.getApplicationInfo("com.lizi.skyright", 0).sourceDir;
                 PathClassLoader hookClassLoader = new PathClassLoader(apkPath, XposedBridge.BOOTCLASSLOADER);

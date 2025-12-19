@@ -137,7 +137,7 @@ public class HideAccessibilityStatusAdapter extends BaseAdapter implements Compo
             if (app.uid > 2000) {
                 String packageName = app.packageName;
                 systemServerManager.setPackageHideAccessibilityStatus(packageName, p);
-                this.hideList = JsonParser.getListData(systemServerManager.getStorageData(), "package_hide_accessibility_list");
+                this.hideList = JsonParser.getListData(systemServerManager.getStorageData(),SystemServerManagerImpl.PACKAGES_HIDE_ACCESSIBILITY);
             } else {
                 Toast.makeText(context, "核心应用不建议隐藏", Toast.LENGTH_SHORT).show();
                 compoundButton.setChecked(false);

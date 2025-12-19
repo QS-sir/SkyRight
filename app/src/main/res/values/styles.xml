@@ -6,5 +6,8 @@
         <item name="android:colorAccent">@color/colorAccent</item>
         <item name="android:navigationBarColor">?android:colorPrimary</item>
 	</style>
-	
+    <style name="dialog_anim">
+        <item name="android:windowEnterAnimation">@anim/dialog_show_anim</item>
+        <item name="android:windowExitAnimation">@anim/dialog_close_anim</item>
+	</style>
 </resources>

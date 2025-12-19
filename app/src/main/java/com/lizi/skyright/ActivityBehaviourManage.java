@@ -7,32 +7,36 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.ProgressBar;
+import android.widget.Toast;
+import com.lizi.skyright.MainActivity;
 
-public class ActivityPermissionManage extends Activity implements TextWatcher,Runnable {
-    
+public class ActivityBehaviourManage extends Activity implements OnItemClickListener,TextWatcher,Runnable {
+
     private ListView appList;
     private EditText searchInput;
     private PackageListAdapter packageListAdapter;
-    private Handler handler;
     private String search;
     private WindowManager windowManager;
     private WindowManager.LayoutParams windowParams;
+    private ActivityManageDialog activityManageDialog;
     private View view;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_permission_manage);
         init();
     }
-    
-    private void init(){
-        handler = new Handler();
+
+    private void init() {
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         windowManager = getWindowManager();
         windowParams = new WindowManager.LayoutParams();
         windowParams.width = WindowManager.LayoutParams.MATCH_PARENT;
@@ -42,52 +46,79 @@ public class ActivityPermissionManage extends Activity implements TextWatcher,Ru
         windowParams.gravity = Gravity.CENTER;
         windowParams.dimAmount = 0.5f;
         windowParams.format = PixelFormat.TRANSLUCENT;
+        activityManageDialog = new ActivityManageDialog(this);
         initViews();
     }
-    
-    private void initViews(){
-        view = View.inflate(this,R.layout.load_interface,null);
+
+    private void initViews() {
+        view = View.inflate(this, R.layout.load_interface, null);
         view.setVisibility(View.GONE);
         appList = findViewById(R.id.activitypermissionmanageListView1);
         searchInput = findViewById(R.id.activitypermissionmanageEditText1);
         packageListAdapter = new PackageListAdapter(this);
         appList.setAdapter(packageListAdapter);
+        appList.setOnItemClickListener(this);
         searchInput.addTextChangedListener(this);
-        windowManager.addView(view,windowParams);
+        windowManager.addView(view, windowParams);
     }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int p, long p1) {
+        activityManageDialog.show(packageListAdapter.getItem(p));
+    }
+
 
     @Override
     public void run() {
         showLoadWindow();
         packageListAdapter.notifyDataSetChanged(search);
     }
-    
+
     @Override
     public void afterTextChanged(Editable editable) {
         search = editable.toString();
-        handler.removeCallbacks(this);
-        handler.postDelayed(this,600);
+        appList.removeCallbacks(this);
+        if (search != null && !search.isEmpty()) {
+            appList.postDelayed(this, 600);
+        }else{
+            packageListAdapter.notifyDataSetChanged(null);
+        }
     }
-    
-    private void showLoadWindow(){
+
+    private void showLoadWindow() {
         view.setVisibility(View.VISIBLE);
-        windowManager.updateViewLayout(view,windowParams);
+        windowManager.updateViewLayout(view, windowParams);
     }
-    
-    public void hideLoadWindow(){
+
+    public void hideLoadWindow() {
         view.setVisibility(View.GONE);
-        windowManager.updateViewLayout(view,windowParams);
+        windowManager.updateViewLayout(view, windowParams);
     }
 
     @Override
     public void beforeTextChanged(CharSequence charSequence, int p, int p1, int p2) {
-        
+
     }
 
     @Override
     public void onTextChanged(CharSequence charSequence, int p, int p1, int p2) {
-       
+
     }
-    
-    
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (searchInput == null) {
+                return super.onKeyDown(keyCode, event);
+            }
+            if (searchInput.getText() != null && searchInput.getText().length() > 0) {
+                searchInput.setText(null);
+                return true;
+            } else {
+                finish();
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
 }

@@ -65,8 +65,8 @@
             android:exported="false"/>
 
         <activity 
-            android:name="com.lizi.skyright.ActivityPermissionManage"
-            android:label="@string/activity_permission_manage"
+            android:name="com.lizi.skyright.ActivityBehaviourManage"
+            android:label="@string/activity_behaviour_manage"
             android:exported="false"/>
 
     </application>

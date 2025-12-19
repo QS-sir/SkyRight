@@ -135,6 +135,7 @@ public final class HookRegistry {
             hook.unhook();
         }
         hooks.clear(); 
+        XposedBridge.log("[com.lizi.skyright] hook pause");
     }
 
     /**

@@ -61,7 +61,7 @@ public class HideAccessibilityStatus extends XC_MethodHook {
     }
 
     private String getPackageNameByPid(int pid) {
-        String packageName = "null";
+        String packageName = "";
         List<ActivityManager.RunningAppProcessInfo> appList = am.getRunningAppProcesses();
         for (ActivityManager.RunningAppProcessInfo app : appList) {
             if (app.uid <= 2000) {

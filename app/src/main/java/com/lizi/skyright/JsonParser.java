@@ -25,7 +25,7 @@ public final class JsonParser {
             JSONObject jsonObject = new JSONObject(data);
             list = getListData(jsonObject.getJSONArray(key).toString());
         } catch (JSONException e) {
-            LogManager.log(TAG, "getListData error: " + e.toString());
+            LogManager.log(TAG, "getListData1 error: " + e.toString());
         }
         return list;
     }
@@ -39,16 +39,26 @@ public final class JsonParser {
             int length = jsonArray.length();
             for (int i = 0; i < length; i++) {
                 // 防止数组中存在 null 值
-                String item = jsonArray.optString(i, null);
-                if (item != null) {
-                    list.add(item);
-                }
+                String item = jsonArray.optString(i);
+                list.add(item);
             }
         } catch (JSONException e) {
-            LogManager.log(TAG, "getListData error: " + e.toString());
+            LogManager.log(TAG, "getListData2 error: " + e.toString());
         }
         return list;
     }
+    
+    public static Set<String> getListData(JSONArray jsonArray){
+        Set<String> list = new HashSet<>();
+        if (jsonArray == null) return list;
+        int length = jsonArray.length();
+        for (int i = 0; i < length; i++) {
+            // 防止数组中存在 null 值
+            list.add(jsonArray.optString(i));
+        }
+        return list;
+    }
+    
     
     public static Map<String, String> getMapStringData(String data, String key) {
         Map<String, String> map = new HashMap<>();
@@ -71,6 +81,21 @@ public final class JsonParser {
         }
         return map;
     }
+    
+    public static Map<String, String> getMapStringData(JSONObject json) {
+        Map<String, String> map = new HashMap<>();
+        if (json == null) return map;
+        Iterator<String> keys = json.keys();
+        while (keys.hasNext()) {
+            String k = keys.next();
+            String v = json.optString(k,null);
+            if (v != null) {
+                map.put(k, v);
+            }
+        }
+        return map;
+    }
+    
 
     public static Map<String, List<String>> getMapListData(String data, String key) {
         Map<String, List<String>> map = new HashMap<>();
@@ -98,6 +123,29 @@ public final class JsonParser {
             }
         } catch (JSONException e) {
             LogManager.log(TAG, "getMapListData error: " + e.toString());
+        }
+        return map;
+    }
+    
+    public static Map<String, Map<String, String>> getMapData(JSONObject json) {
+        Map<String, Map<String, String>> map = new HashMap<>();
+        if (json == null) return map;
+        Iterator<String> keys = json.keys();
+        while (keys.hasNext()) {
+            String k = keys.next();
+            JSONObject vObj = json.optJSONObject(k);
+            if (vObj != null) {
+                Map<String, String> innerMap = new HashMap<>();
+                Iterator<String> vKeys = vObj.keys();
+                while (vKeys.hasNext()) {
+                    String vk = vKeys.next();
+                    String vv = vObj.optString(vk, null);
+                    if (vv != null) {
+                        innerMap.put(vk, vv);
+                    }
+                }
+                map.put(k, innerMap);
+            }
         }
         return map;
     }

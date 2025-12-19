@@ -1,12 +1,13 @@
 package com.lizi.skyright;
 
 import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Binder;
-import android.os.Parcel;
 import android.os.RemoteException;
 import com.lizi.skyright.service.ISystemServerManager;
 import de.robv.android.xposed.XposedBridge;
@@ -33,7 +34,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     public static final String SUNDRIES_DATA = "sundries_data";
     public static final String EXPAND_HOOK_PACKAGES = "expand_hook_packages";
     public static final String WHITE_LIST_PACKAGES = "white_list_packages";
-    
+
     private HookRegistry hookRegistry;
     private PackageManager pm;
     private ActivityManager am;
@@ -63,13 +64,12 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
             String data = readData();
             json = new JSONObject(data);
             initDistribute();
-            dataUpdateCallback.updateAllData(json.toString());
         } catch (JSONException e) {
             XposedBridge.log(TAG + "  initData  error:" + e.toString());
         }
     }
-    
-    private void initDistribute() throws JSONException{
+
+    private void initDistribute() throws JSONException {
         String value1 = MONITOR_PACKAGES_ACTIVITY ;
         String value2 = MODIFY_PACKAGES_START_ACTIVITY;
         String value3 = MONITOR_ACTIVITYS;
@@ -120,9 +120,10 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
             json.put(value7, new JSONArray());
             whiteListPackages = json.getJSONArray(value7);
         }
+        dataUpdateCallback.updateAllData(json.toString());
     }
-    
-    
+
+
     private String readData() {
         InputStreamReader isr = null;
         BufferedReader read = null;
@@ -149,23 +150,116 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     }
 
     @Override
+    public void setPackageWhiteList(String packageName, boolean b) throws RemoteException {
+        if (b) {
+            whiteListPackages.put(packageName);
+        } else {
+            int size = whiteListPackages.length() - 1;
+            for (int i = size ; i >= 0; i--) {
+                String pkg = whiteListPackages.optString(i, "");
+                if (pkg.equals(packageName)) {
+                    whiteListPackages.remove(i);
+                    break;
+                }
+            }
+        }
+        try {
+            writeFile();
+        } catch (Exception e) {
+            LogManager.log(TAG, "setPackageWhiteList Exception error: " + e.toString());
+		}
+        dataUpdateCallback.updateWhiteListPackages(JsonParser.getListData(whiteListPackages));
+    }
+
+    @Override
+    public List<String> getServiceLoges() throws RemoteException {
+        return LogManager.getAllLogs();
+    }
+
+    @Override
+    public void setMonitorPackageActivity(String packageName, boolean b) throws RemoteException {
+        if (b) {
+            monitorPackagesActivityBehaviour.put(packageName);
+        } else {
+            int size = monitorPackagesActivityBehaviour.length() - 1;
+            for (int i = size ; i >= 0; i--) {
+                String pkg = monitorPackagesActivityBehaviour.optString(i);
+                if (pkg.equals(packageName)) {
+                    monitorPackagesActivityBehaviour.remove(i);
+                    break;
+                }
+            }
+        }
+        dataUpdateCallback.updateMonitorPackagesActivity(JsonParser.getListData(monitorPackagesActivityBehaviour));
+        try {
+            writeFile();
+        } catch (Exception e) {
+            LogManager.log(TAG, "setMonitorPackageActivity Exception error: " + e.toString());
+		}
+    }
+
+    @Override
+    public void setMonitorActivity(String packageName, String activityName, String action) throws RemoteException {
+        if (action != null && action.equals(ActivityRequestDialog.REQUEST_IGNORE)) {
+            if (monitorActivityBehaviour.has(packageName)) {
+                JSONObject list = monitorActivityBehaviour.optJSONObject(packageName);
+                if (list.has(activityName)) {
+                    list.remove(activityName);
+                }
+            }
+        } else {
+            try {
+                if (monitorActivityBehaviour.has(packageName)) {
+                    JSONObject list = monitorActivityBehaviour.optJSONObject(packageName);
+                    list.put(activityName, action);
+                } else {
+                    JSONObject list = new JSONObject();
+                    list.put(activityName, action);
+                    monitorActivityBehaviour.put(packageName, list);
+                }
+            } catch (JSONException e) {
+                LogManager.log(TAG, "setMonitorActivity JSONException error: " + e.toString());
+            }
+        }
+        dataUpdateCallback.updateMonitorActivitys(JsonParser.getMapData(monitorActivityBehaviour));
+        try {
+            writeFile();
+        } catch (Exception e) {
+            LogManager.log(TAG, "setMonitorActivity Exception error: " + e.toString());
+		}
+    }
+
+    @Override
+    public void setModifyPackageStartActivity(String packageName, String activityName) throws RemoteException {
+        try {
+            if (activityName != null && !activityName.isEmpty()) {
+                modifyPackagesStartActivity.put(packageName, activityName);
+                writeFile();
+            } else if (modifyPackagesStartActivity.has(packageName)) {
+                modifyPackagesStartActivity.remove(packageName);
+                writeFile();
+            }
+        } catch (Exception e) {
+            LogManager.log(TAG, "setModifyPackageStartActivity Exception error: " + e.toString());
+        }
+    }
+
+
+    @Override
     public void setPackageHideAccessibilityStatus(String packageName, boolean b) throws RemoteException {
         if (b) {
             packagesHideAccessibility.put(packageName);
         } else {
-            for (int i = packagesHideAccessibility.length() - 1; i >= 0; i--) {
-                try {
-                    String pkg = packagesHideAccessibility.getString(i);
-                    if (pkg.equals(packageName)) {
-                        packagesHideAccessibility.remove(i);
-                        break; 
-                    }
-                } catch (JSONException e) {
-                    LogManager.log(TAG, "setPackageHideAccessibilityStatus JSONException error: " + e.toString());
+            int size = packagesHideAccessibility.length();
+            for (int i = 0; i < size; i++) {
+                String pkg = packagesHideAccessibility.optString(i);
+                if (pkg.equals(packageName)) {
+                    packagesHideAccessibility.remove(i);
+                    break; 
                 }
             }
         }
-        dataUpdateCallback.updatePackagesHideAccessibility(JsonParser.getListData(packagesHideAccessibility.toString()));
+        dataUpdateCallback.updatePackagesHideAccessibility(JsonParser.getListData(packagesHideAccessibility));
         try {
             writeFile();
         } catch (Exception e) {
@@ -173,24 +267,9 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
 		}
     }
 
-    private int getParcelSize(List<ApplicationInfo> list) {
-        Parcel parcel = Parcel.obtain();
-        try {
-            // 写入列表大小
-            parcel.writeInt(list.size());
-            // 遍历写入每个对象
-            for (ApplicationInfo info : list) {
-                parcel.writeParcelable(info, 0);
-            }
-            return parcel.dataSize();
-        } finally {
-            parcel.recycle();
-        }
-    }
-
     @Override
     public int getParcelSize() throws RemoteException {
-        return getParcelSize(getInstalledApplications(0));
+        return 0;
     }
 
 
@@ -359,7 +438,8 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     public PackageInfo getPackageInfo(String packageName, int flags) throws RemoteException {
         long origId = Binder.clearCallingIdentity();
         try {
-            return pm.getPackageInfo(packageName, flags);
+            PackageInfo p = pm.getPackageInfo(packageName,flags);
+            return p;
         } catch (PackageManager.NameNotFoundException e) {
             LogManager.log(TAG, "getPackageInfo error: " + e.toString());
         } finally {
@@ -379,6 +459,23 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
             Binder.restoreCallingIdentity(origId);
         }
 		return new ApplicationInfo();
+    }
+
+    @Override
+    public String getPackageLaunchActivityName(String packageName) throws RemoteException {
+        long origId = Binder.clearCallingIdentity();
+        try {
+            Intent intent = pm.getLaunchIntentForPackage(packageName);
+            if (intent != null) {
+                ComponentName com = intent.getComponent();
+                if (com != null) {
+                    return com.getClassName();
+                }
+            }
+            return "";
+        } finally {
+            Binder.restoreCallingIdentity(origId);
+		}
     }
 
 }

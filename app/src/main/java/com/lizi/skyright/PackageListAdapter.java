@@ -15,20 +15,19 @@ import java.util.Set;
 
 public class PackageListAdapter extends BaseAdapter implements Runnable {
 
-    private ActivityPermissionManage context;
+    private ActivityBehaviourManage context;
     private SystemServerManager systemServerManager;
     private volatile List<ApplicationInfo> applications;
-    private Set<String> hideList;
+  //  private Set<String> hideList;
     private PackageManager pm;
     private volatile boolean inSearch; 
     private Handler handler;
 
-
-    public PackageListAdapter(ActivityPermissionManage context) {
+    public PackageListAdapter(ActivityBehaviourManage context) {
         this.context = context;
         this.systemServerManager = SystemServerManager.getManagerInstance();
         this.applications = systemServerManager.getInstalledApplications();
-        this.hideList = JsonParser.getListData(systemServerManager.getStorageData(), "package_hide_accessibility_list");
+       // this.hideList = JsonParser.getListData(systemServerManager.getStorageData(),SystemServerManagerImpl.PACKAGES_HIDE_ACCESSIBILITY);
         this.pm = context.getPackageManager();
         this.handler = new Handler();
     }
