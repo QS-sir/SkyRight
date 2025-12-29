@@ -18,7 +18,6 @@ public class PackageListAdapter extends BaseAdapter implements Runnable {
     private ActivityBehaviourManage context;
     private SystemServerManager systemServerManager;
     private volatile List<ApplicationInfo> applications;
-  //  private Set<String> hideList;
     private PackageManager pm;
     private volatile boolean inSearch; 
     private Handler handler;

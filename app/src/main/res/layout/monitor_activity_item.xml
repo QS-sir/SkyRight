@@ -86,81 +86,45 @@
 
 		</LinearLayout>
 
-		<LinearLayout
+		<RadioGroup
 			android:orientation="horizontal"
 			android:layout_width="match_parent"
-			android:layout_height="wrap_content">
+			android:layout_height="wrap_content"
+			android:gravity="center"
+			android:paddingLeft="45dp"
+			android:id="@+id/monitoractivityitemRadioGroup1">
 
-			<LinearLayout
-				android:orientation="horizontal"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:layout_weight="1.0"
-				android:gravity="center">
-
-				<TextView
-					android:layout_width="wrap_content"
-					android:layout_height="match_parent"
-					android:text="默认"
-					android:gravity="center"
-					android:textColor="#FFFFFFFF"
-					android:textSize="15sp"
-					android:textStyle="bold"/>
-
-				<RadioButton
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:id="@+id/monitoractivityitemRadioButton1"/>
-
-			</LinearLayout>
-
-			<LinearLayout
-				android:orientation="horizontal"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:layout_weight="1.0"
-				android:gravity="center">
-
-				<TextView
-					android:layout_width="wrap_content"
-					android:layout_height="match_parent"
-					android:text="询问"
-					android:gravity="center"
-					android:textColor="#FFFFFFFF"
-					android:textSize="15sp"
-					android:textStyle="bold"/>
-
-				<RadioButton
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:id="@+id/monitoractivityitemRadioButton2"/>
-
-			</LinearLayout>
-
-			<LinearLayout
-				android:orientation="horizontal"
-				android:layout_width="match_parent"
+			<RadioButton
+				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
+				android:textColor="#FFFFFFFF"
+				android:text="默认"
+				android:id="@+id/monitoractivityitemRadioButton1"
 				android:layout_weight="1.0"
-				android:gravity="center">
+				android:background="@drawable/radius"
+				android:textStyle="bold"/>
 
-				<TextView
-					android:layout_width="wrap_content"
-					android:layout_height="match_parent"
-					android:text="拒绝"
-					android:gravity="center"
-					android:textColor="#FFFFFFFF"
-					android:textSize="15sp"
-					android:textStyle="bold"/>
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="询问"
+				android:textColor="#FFFFFFFF"
+				android:id="@+id/monitoractivityitemRadioButton2"
+				android:layout_weight="1.0"
+				android:background="@drawable/radius"
+				android:textStyle="bold"/>
 
-				<RadioButton
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:id="@+id/monitoractivityitemRadioButton3"/>
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="拒绝"
+				android:textColor="#FFFFFFFF"
+				android:id="@+id/monitoractivityitemRadioButton3"
+				android:layout_weight="1.0"
+				android:background="@drawable/radius"
+				android:textStyle="bold"/>
 
-			</LinearLayout>
-
-		</LinearLayout>
+		</RadioGroup>
 
 	</LinearLayout>
 

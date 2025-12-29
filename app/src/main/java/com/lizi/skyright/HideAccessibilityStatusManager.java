@@ -12,14 +12,14 @@ import java.util.List;
 import java.util.Set;
 import de.robv.android.xposed.XposedBridge;
 
-public class HideAccessibilityStatus extends XC_MethodHook {
+public class HideAccessibilityStatusManager extends XC_MethodHook {
 
     private Context context;
     private ActivityManager am;
-    private Set<String> packageHideAccessibilityList;
+    private volatile Set<String> packageHideAccessibilityList;
     private Object obj;
 
-    public HideAccessibilityStatus(Context context) {
+    public HideAccessibilityStatusManager(Context context) {
         this.context = context;
         this.am = context.getSystemService(ActivityManager.class);
         this.obj = ActivityManager.getService();

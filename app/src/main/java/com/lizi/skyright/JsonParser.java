@@ -82,6 +82,8 @@ public final class JsonParser {
         return map;
     }
     
+    
+    
     public static Map<String, String> getMapStringData(JSONObject json) {
         Map<String, String> map = new HashMap<>();
         if (json == null) return map;

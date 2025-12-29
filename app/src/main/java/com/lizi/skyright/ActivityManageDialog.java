@@ -8,6 +8,9 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
@@ -18,9 +21,10 @@ import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.Map;
 import java.util.Set;
 
-public class ActivityManageDialog extends BaseDialog implements View.OnClickListener,DialogInterface.OnShowListener,CompoundButton.OnCheckedChangeListener {
+public class ActivityManageDialog extends BaseDialog implements TextWatcher,View.OnClickListener,DialogInterface.OnShowListener,CompoundButton.OnCheckedChangeListener {
 
     private SystemServerManager systemServerManager;
     private PackageManager pm;
@@ -34,16 +38,19 @@ public class ActivityManageDialog extends BaseDialog implements View.OnClickList
     private LinearLayout layout;
     private ActivityInfo activityInfo[];
     private boolean isExistStartActivity;
-    private EditText searchIput;
+    private EditText searchInput;
     private String launcherPackageName;
     private Set<String> whiteListPackages,monitorPackagesActivity;
+    private Map<String,String> startActivitys;
     private MonitorActivityListAdapter activityListAdapter;
+    private ActivityListDialog activityListDialog;
 
     public ActivityManageDialog(Context context) {
         super(context, R.layout.activity_manage_dialog);
         this.systemServerManager = SystemServerManager.getManagerInstance();
         this.pm = context.getPackageManager();
         this.launcherPackageName = getLauncherPackageName();
+        this.activityListDialog = new ActivityListDialog(context);
     }
 
     @Override
@@ -65,13 +72,45 @@ public class ActivityManageDialog extends BaseDialog implements View.OnClickList
         monitorPackage = findViewById(R.id.activitymanagedialogSwitch2);
         modifyStartActivity = findViewById(R.id.activitymanagedialogTextView4);
         activitys = findViewById(R.id.activitymanagedialogListView1);
-        searchIput = findViewById(R.id.activitymanagedialogEditText1);
+        searchInput = findViewById(R.id.activitymanagedialogEditText1);
         layout = findViewById(R.id.activitymanagedialogLinearLayout1);
         modifyStartActivity.setOnClickListener(this);
         activitys.setAdapter(activityListAdapter);
         whiteList.setOnCheckedChangeListener(this);
         monitorPackage.setOnCheckedChangeListener(this);
+        searchInput.addTextChangedListener(this);
     }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+        activityListAdapter.notifyDataSetChanged(editable.toString());
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int p, int p1, int p2) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int p, int p1, int p2) {
+
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (searchInput == null) {
+                return super.onKeyDown(keyCode, event);
+            }
+            if (searchInput.getText() != null && searchInput.getText().length() > 0) {
+                searchInput.setText(null);
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+
 
     @Override
     public void onClick(View view) {
@@ -86,7 +125,7 @@ public class ActivityManageDialog extends BaseDialog implements View.OnClickList
         } else if (!isExistStartActivity) {
             Toast.makeText(getContext(), "该应用没有入口活动，不能修改", Toast.LENGTH_SHORT).show();
         } else {
-
+            activityListDialog.show(activityInfo);
         }
     }
 
@@ -113,41 +152,83 @@ public class ActivityManageDialog extends BaseDialog implements View.OnClickList
     public void onShow(DialogInterface dialogInterface) {
         //activitys.removeCallbacks(this);
         if (applicationInfo == null || !applicationInfo.packageName.equals(packageName)) {
-            packageName = applicationInfo.packageName; 
+            whiteListPackages = JsonParser.getListData(systemServerManager.getStorageData(), SystemServerManagerImpl.WHITE_LIST_PACKAGES);
+            monitorPackagesActivity = JsonParser.getListData(systemServerManager.getStorageData(), SystemServerManagerImpl.MONITOR_PACKAGES_ACTIVITY);
+            startActivitys = JsonParser.getMapStringData(systemServerManager.getStorageData(), SystemServerManagerImpl.MODIFY_PACKAGES_START_ACTIVITY);
+            packageName = applicationInfo.packageName;
+            imageView.setBackground(applicationInfo.loadIcon(pm));
+            appName.setText(applicationInfo.loadLabel(pm));
+            appPackageName.setText(packageName);
+            String start = systemServerManager.getPackageLaunchActivityName(packageName);
+            isExistStartActivity = start != null && !start.equals("");
+            if (isExistStartActivity) {
+                if (startActivitys.containsKey(packageName)) {
+                    startActivityName.setText(startActivitys.get(packageName));
+                } else {
+                    startActivityName.setText(start);
+                }
+            } else {
+                startActivityName.setText("无");
+            }
+            boolean isWhiteList = whiteListPackages.contains(packageName);
+            whiteList.setChecked(isWhiteList);
+            boolean isMonitor = monitorPackagesActivity.contains(packageName);
+            monitorPackage.setChecked(isMonitor);
+            
+            PackageInfo appinfo = pm.getPackageArchiveInfo(applicationInfo.sourceDir, PackageManager.GET_ACTIVITIES);
+            activityInfo = appinfo.activities;
+            activityListAdapter.notifyDataSetChanged(activityInfo);
+            int uid = applicationInfo.uid;
+            boolean isHide = isWhiteList || isMonitor || uid <= 2000 || packageName.equals(launcherPackageName) || packageName.equals("com.lizi.skyright");
+            if (isHide && layout.getVisibility() != View.GONE) {
+                layout.setVisibility(View.GONE);
+                
+            } else if (!isHide && layout.getVisibility() != View.VISIBLE) {
+                layout.setVisibility(View.VISIBLE);
+            }
+            boolean isSystem = uid <= 2000 || packageName.equals(launcherPackageName) || packageName.equals("com.lizi.skyright");
+            if(isSystem){
+                whiteList.setEnabled(false);
+                monitorPackage.setEnabled(false);
+            }else{
+                if(isWhiteList){
+                    monitorPackage.setEnabled(false);
+                }else if(isMonitor){
+                    whiteList.setEnabled(false);
+                }else{
+                    monitorPackage.setEnabled(true);
+                    whiteList.setEnabled(true);
+                }
+            }
+            
         }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        if (hasFocus && isShowing()) {
+            update();
+        }
+        super.onWindowFocusChanged(hasFocus);
+    }
+
+    private void update() {
         whiteListPackages = JsonParser.getListData(systemServerManager.getStorageData(), SystemServerManagerImpl.WHITE_LIST_PACKAGES);
         monitorPackagesActivity = JsonParser.getListData(systemServerManager.getStorageData(), SystemServerManagerImpl.MONITOR_PACKAGES_ACTIVITY);
-        imageView.setBackground(applicationInfo.loadIcon(pm));
-        appName.setText(applicationInfo.loadLabel(pm));
-        appPackageName.setText(packageName);
+        startActivitys = JsonParser.getMapStringData(systemServerManager.getStorageData(), SystemServerManagerImpl.MODIFY_PACKAGES_START_ACTIVITY);
         String start = systemServerManager.getPackageLaunchActivityName(packageName);
         isExistStartActivity = start != null && !start.equals("");
         if (isExistStartActivity) {
-            startActivityName.setText(start);
+            if (startActivitys.containsKey(packageName)) {
+                startActivityName.setText(startActivitys.get(packageName));
+            } else {
+                startActivityName.setText(start);
+            }
         } else {
             startActivityName.setText("无");
         }
-        boolean isWhiteList = whiteListPackages.contains(packageName);
-        whiteList.setChecked(isWhiteList);
-        monitorPackage.setEnabled(!isWhiteList);
-        boolean isMonitor = monitorPackagesActivity.contains(packageName);
-        monitorPackage.setChecked(isMonitor);
-        whiteList.setEnabled(!isMonitor);
-        PackageInfo appinfo = pm.getPackageArchiveInfo(applicationInfo.sourceDir, PackageManager.GET_ACTIVITIES);
-        activityInfo = appinfo.activities;
-        activityListAdapter.notifyDataSetChanged(activityInfo);
-        int uid = applicationInfo.uid;
-        boolean isHide = isWhiteList || isMonitor || uid <= 2000 || packageName.equals(launcherPackageName) | packageName.equals("com.lizi.skyright");
-        if (isHide && layout.getVisibility() != View.GONE) {
-            layout.setVisibility(View.GONE);
-        } else if (!isHide && layout.getVisibility() != View.VISIBLE) {
-            layout.setVisibility(View.VISIBLE);
-        }
-        boolean isSystem = uid <= 2000 || packageName.equals(launcherPackageName) || packageName.equals("com.lizi.skyright");
-        whiteList.setEnabled(!isSystem);
-        monitorPackage.setEnabled(!isSystem);
+        searchInput.setText(null);
     }
-
 
     public void show(ApplicationInfo applicationInfo) {
         this.applicationInfo = applicationInfo;

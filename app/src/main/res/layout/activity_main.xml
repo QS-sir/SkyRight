@@ -32,7 +32,16 @@
 		android:background="@drawable/btn_custom_blue"
 		android:textColor="#FFFFFFFF"
 		android:elevation="15dp"
-		android:id="@+id/activitymainButton1"/>
+		android:id="@+id/activitymainButton1"
+		android:layout_marginBottom="16dp"/>
+
+	<Button
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="应用窗口管理"
+		android:background="@drawable/btn_custom_blue"
+		android:textColor="#FFFFFFFF"
+		android:elevation="15dp"/>
 
 </LinearLayout>
 

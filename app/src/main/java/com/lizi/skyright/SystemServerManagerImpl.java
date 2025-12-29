@@ -163,12 +163,12 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
                 }
             }
         }
+        dataUpdateCallback.updateWhiteListPackages(JsonParser.getListData(whiteListPackages));
         try {
             writeFile();
         } catch (Exception e) {
             LogManager.log(TAG, "setPackageWhiteList Exception error: " + e.toString());
 		}
-        dataUpdateCallback.updateWhiteListPackages(JsonParser.getListData(whiteListPackages));
     }
 
     @Override
@@ -234,9 +234,11 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
         try {
             if (activityName != null && !activityName.isEmpty()) {
                 modifyPackagesStartActivity.put(packageName, activityName);
+                dataUpdateCallback.updateModifyStartActivityPackages(JsonParser.getMapStringData(modifyPackagesStartActivity));
                 writeFile();
             } else if (modifyPackagesStartActivity.has(packageName)) {
                 modifyPackagesStartActivity.remove(packageName);
+                dataUpdateCallback.updateModifyStartActivityPackages(JsonParser.getMapStringData(modifyPackagesStartActivity));
                 writeFile();
             }
         } catch (Exception e) {

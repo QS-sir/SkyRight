@@ -135,7 +135,9 @@
 			android:id="@+id/activityrequestdialogButton1"
 			android:background="@drawable/btn_custom_blue"
 			android:layout_marginRight="5dp"
-			android:layout_marginLeft="5dp"/>
+			android:layout_marginLeft="5dp"
+			android:textSize="13sp"
+			android:textStyle="bold"/>
 
 		<Button
 			android:layout_width="match_parent"
@@ -148,7 +150,9 @@
 			android:id="@+id/activityrequestdialogButton2"
 			android:background="@drawable/btn_custom_blue"
 			android:layout_marginLeft="5dp"
-			android:layout_marginRight="5dp"/>
+			android:layout_marginRight="5dp"
+			android:textSize="13sp"
+			android:textStyle="bold"/>
 
 		<Button
 			android:layout_width="match_parent"
@@ -161,7 +165,9 @@
 			android:id="@+id/activityrequestdialogButton3"
 			android:background="@drawable/btn_custom_blue"
 			android:layout_marginLeft="5dp"
-			android:layout_marginRight="5dp"/>
+			android:layout_marginRight="5dp"
+			android:textSize="13sp"
+			android:textStyle="bold"/>
 
 	</LinearLayout>
 

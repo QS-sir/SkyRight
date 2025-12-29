@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,6 +21,7 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
     private Button packageActivityManage;
     private AdditionalFunctionDialog additionalFunctionDialog;
     private HideAccessibilityStatusDialog hideAccessibilityDialog;
+    private long firstTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,7 +146,29 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
         }
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+             if (System.currentTimeMillis() - firstTime > 2000) {
+                Toast.makeText(MainActivity.this, "再次返回退出程序", Toast.LENGTH_SHORT).show();
+                firstTime = System.currentTimeMillis();
+                return true;
+            } else {
+                finish();
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(new Intent(this,BridgeService.class));
+        android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(0);
+    }
+
+    
     public static boolean isModuleActivated() {
         return false;
     }

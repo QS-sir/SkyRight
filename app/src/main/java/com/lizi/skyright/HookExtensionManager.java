@@ -28,7 +28,7 @@ public class HookExtensionManager {
     private Map<String,Object> objs = new HashMap<>();
     private PackageManager packageManager;
     private ClassLoader hostClassLoader;
-    private String jsonData;
+    private volatile String jsonData;
 
     public HookExtensionManager(Context context) {
         this.packageManager = context.getPackageManager();

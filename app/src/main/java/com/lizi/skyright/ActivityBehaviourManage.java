@@ -26,6 +26,7 @@ public class ActivityBehaviourManage extends Activity implements OnItemClickList
     private WindowManager windowManager;
     private WindowManager.LayoutParams windowParams;
     private ActivityManageDialog activityManageDialog;
+    
     private View view;
 
     @Override

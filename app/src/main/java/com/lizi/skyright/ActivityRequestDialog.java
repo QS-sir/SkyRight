@@ -11,10 +11,9 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
+import android.widget.Toast;
 
-public class ActivityRequestDialog extends BaseFloatDialog implements BaseFloatDialog.OnShowListener,View.OnClickListener,Runnable {
+public class ActivityRequestDialog extends BaseFloatDialog implements View.OnLongClickListener,BaseFloatDialog.OnShowListener,View.OnClickListener,Runnable {
 
     public static final String REQUEST_ASK = "ask_about";
     public static final String REQUEST_ALWAYS_REFUSE = "always_refuse";
@@ -56,12 +55,30 @@ public class ActivityRequestDialog extends BaseFloatDialog implements BaseFloatD
         alwaysRefuse.setOnClickListener(this);
         refuse.setOnClickListener(this);
         agreeOnce.setOnClickListener(this);
+        presentAct.setOnLongClickListener(this);
+        startActivity.setOnLongClickListener(this);
+        intentText.setOnLongClickListener(this);
+    }
+
+    @Override
+    public boolean onLongClick(View view) {
+        if(view == presentAct){
+            clipboardManager.setText(presentAct.getText());
+            Toast.makeText(getContext(), "已复制当前活动类名", Toast.LENGTH_SHORT).show();
+        }else if(view == startActivity){
+            clipboardManager.setText(startActivity.getText());
+            Toast.makeText(getContext(), "已复制启动活动类名", Toast.LENGTH_SHORT).show();
+        }else if(view == intentText){
+            clipboardManager.setText(intentText.getText());
+            Toast.makeText(getContext(), "已复制意图", Toast.LENGTH_SHORT).show();
+        }
+        return false;
     }
 
     @Override
     public void onClick(View view) {
         if (view == alwaysRefuse) {
-            
+            monitorActivityManager.setRefuseActivityOperate();
         } else if (view == agreeOnce) {
             monitorActivityManager.startActivity();
         }
@@ -84,7 +101,7 @@ public class ActivityRequestDialog extends BaseFloatDialog implements BaseFloatD
         if (presentActivity != null) {
             presentAct.setText(presentActivity);
         } else {
-            presentAct.setText("未知");
+            presentAct.setText("无法定位");
 		}
         ComponentName com = intent.getComponent();
         if (com != null) {
@@ -103,8 +120,8 @@ public class ActivityRequestDialog extends BaseFloatDialog implements BaseFloatD
             }
 			title.setText("请求打开被管控活动");
         } else if (requestType == MONITOT_ACTIVITY_REQUEST_START_OTHER) {
-            if (alwaysRefuse.getVisibility() != View.VISIBLE) {
-                alwaysRefuse.setVisibility(View.VISIBLE);
+            if (alwaysRefuse.getVisibility() != View.INVISIBLE) {
+                alwaysRefuse.setVisibility(View.INVISIBLE);
             }
 			title.setText("受管控活动请求");
         }

@@ -98,6 +98,11 @@ public final class HookRegistry {
     public void hookAllMethods(Class<?> hookClass, String methodName, XC_MethodHook callback) {
         hooks.addAll(XposedBridge.hookAllMethods(hookClass, methodName, callback));
     }
+    
+    
+    public void hookAllConstructors(Class<?> hookClass, XC_MethodHook callback){
+        hooks.addAll(XposedBridge.hookAllConstructors(hookClass,callback));
+    }
 
     /**
      * 添加 Method Hook
@@ -114,9 +119,6 @@ public final class HookRegistry {
         if (resourceReleasable != null) {
             resourceReleasable.onRelease();
         }
-        if (hooks.isEmpty()) {
-            return;
-        }
         // 遍历并取消所有 Hook
         for (XC_MethodHook.Unhook hook : hooks) {
             hook.unhook();
@@ -127,9 +129,6 @@ public final class HookRegistry {
 
     //暂停hook不释放资源
     public void pauseAllHook() {
-        if (hooks.isEmpty()) {
-            return;
-        }
         // 遍历并取消所有 Hook
         for (XC_MethodHook.Unhook hook : hooks) {
             hook.unhook();
