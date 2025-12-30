@@ -116,7 +116,7 @@ public class PackageListAdapter extends BaseAdapter implements Runnable {
             holder = (ViewHolder) convertView.getTag();
         }
         String packageName = app.packageName;
-        holder.image.setBackground(app.loadIcon(pm));
+        holder.image.setBackground(ApplicationIcon.getPackageIcon(packageName));
         holder.appName.setText(app.loadLabel(pm));
         holder.packageName.setText(packageName);
         return convertView;

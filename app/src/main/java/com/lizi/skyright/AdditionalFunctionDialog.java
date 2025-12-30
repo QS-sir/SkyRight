@@ -10,7 +10,7 @@ import android.widget.Toast;
 
 public class AdditionalFunctionDialog extends BaseDialog implements CompoundButton.OnCheckedChangeListener,DialogInterface.OnShowListener{
     
-    private Switch pauseHook,hideRoot;
+    private Switch pauseHook,rebootProtect,hideRoot;
     private SystemServerManager systemServerManager;
     
     public AdditionalFunctionDialog(Context context){
@@ -28,13 +28,16 @@ public class AdditionalFunctionDialog extends BaseDialog implements CompoundButt
     @Override
     public void onShow(DialogInterface dialogInterface) {
         pauseHook.setChecked(systemServerManager.isPauseAllHook());
+        rebootProtect.setChecked(systemServerManager.isEnabledRebootProtect());
         hideRoot.setChecked(systemServerManager.getOneplusHideRootStatus());
     }
     
     private void initViews(){
         pauseHook = findViewById(R.id.additionalfunctiondialogSwitch1);
-        hideRoot = findViewById(R.id.additionalfunctiondialogSwitch2);
+        rebootProtect = findViewById(R.id.additionalfunctiondialogSwitch2);
+        hideRoot = findViewById(R.id.additionalfunctiondialogSwitch3);
         pauseHook.setOnCheckedChangeListener(this);
+        rebootProtect.setOnCheckedChangeListener(this);
         hideRoot.setOnCheckedChangeListener(this);
     }
 
@@ -45,9 +48,16 @@ public class AdditionalFunctionDialog extends BaseDialog implements CompoundButt
         }
         if(compoundButton == pauseHook){
             systemServerManager.setPauseAllHook(p);
+        }else if(compoundButton == rebootProtect){
+            systemServerManager.setEnabledRebootProtect(p);
         }else if(compoundButton == hideRoot){
             if(Build.BRAND.equals("OnePlus")){
-                systemServerManager.setOneplusHideRootStatus(p);
+                if(systemServerManager.isPauseAllHook()){
+                    compoundButton.setChecked(false);
+                    Toast.makeText(getContext(), "已临时禁用模块无法开启", Toast.LENGTH_SHORT).show();
+                }else{
+                    systemServerManager.setOneplusHideRootStatus(p);
+                }
             }else{
                 compoundButton.setChecked(false);
                 Toast.makeText(getContext(), "非一加手机无效", Toast.LENGTH_SHORT).show();

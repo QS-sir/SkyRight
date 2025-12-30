@@ -12,17 +12,15 @@ import java.util.List;
 import java.util.Set;
 import de.robv.android.xposed.XposedBridge;
 
-public class HideAccessibilityStatusManager extends XC_MethodHook {
+public class HideAccessibilityStatusManager extends XC_MethodHook implements DataUpdateListener {
 
     private Context context;
     private ActivityManager am;
     private volatile Set<String> packageHideAccessibilityList;
-    private Object obj;
 
     public HideAccessibilityStatusManager(Context context) {
         this.context = context;
         this.am = context.getSystemService(ActivityManager.class);
-        this.obj = ActivityManager.getService();
     }
 
     @Override
@@ -56,10 +54,7 @@ public class HideAccessibilityStatusManager extends XC_MethodHook {
         }
     }
 
-    public void updatePackagesHideAccessibility(Set<String> data) {
-        this.packageHideAccessibilityList = data;
-    }
-
+    
     private String getPackageNameByPid(int pid) {
         String packageName = "";
         List<ActivityManager.RunningAppProcessInfo> appList = am.getRunningAppProcesses();
@@ -74,5 +69,10 @@ public class HideAccessibilityStatusManager extends XC_MethodHook {
 		}
         return packageName;
 	}
+
+    @Override
+    public void dataUpdate(String key, String data) {
+        this.packageHideAccessibilityList = JsonParser.getListData(data,key);
+    }
 
 }

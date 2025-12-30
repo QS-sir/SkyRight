@@ -23,6 +23,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import android.os.UserManager;
 
 public class SystemServerManagerImpl extends ISystemServerManager.Stub {
 
@@ -38,8 +39,9 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     private HookRegistry hookRegistry;
     private PackageManager pm;
     private ActivityManager am;
+    private UserManager userManager;
     private File file;
-    private DataUpdateCallback dataUpdateCallback;
+    private MethodHookInit methodHookInit;
     private JSONObject json;
     private JSONArray monitorPackagesActivityBehaviour;
     private JSONObject modifyPackagesStartActivity;
@@ -49,12 +51,13 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     private JSONObject sundriesData;
     private JSONObject expandHookPackages;
 
-    public SystemServerManagerImpl(HookRegistry hookRegistry, DataUpdateCallback dataUpdateCallback) {
-        this.hookRegistry = hookRegistry;
-        this.dataUpdateCallback = dataUpdateCallback;
+    public SystemServerManagerImpl(MethodHookInit methodHookInit) {
+        this.methodHookInit = methodHookInit;
+        this.hookRegistry = methodHookInit.getHookRegistry();
         Context context = hookRegistry.getContext();
         this.pm = context.getPackageManager();
         this.am = context.getSystemService(ActivityManager.class);
+        this.userManager = context.getSystemService(UserManager.class);
         this.file = new File("/data/system/skyright_data.json");
         initData();
     }
@@ -120,9 +123,8 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
             json.put(value7, new JSONArray());
             whiteListPackages = json.getJSONArray(value7);
         }
-        dataUpdateCallback.updateAllData(json.toString());
+        methodHookInit.updateData(null, json.toString());
     }
-
 
     private String readData() {
         InputStreamReader isr = null;
@@ -150,6 +152,32 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     }
 
     @Override
+    public boolean isEnabledRebootProtect() throws RemoteException {
+        try {
+            if (sundriesData.has("reboot_protect")) {
+                return sundriesData.getBoolean("reboot_protect");
+            }
+        } catch (JSONException e) {
+            LogManager.log(TAG, "isEnabledRebootProtect JSONException error: " + e.toString());
+		}
+        return true;
+    }
+
+    @Override
+    public void setEnabledRebootProtect(boolean b) throws RemoteException {
+        try {
+            sundriesData.put("reboot_protect", b);
+        } catch (JSONException e) {
+            LogManager.log(TAG, " setEnabledRebootProtect JSONException error:" + e.toString());
+        }
+        try {
+            writeFile();
+        } catch (Exception e) {
+            LogManager.log(TAG, "setPauseAllHook Exception error: " + e.toString());
+		}
+    }
+
+    @Override
     public void setPackageWhiteList(String packageName, boolean b) throws RemoteException {
         if (b) {
             whiteListPackages.put(packageName);
@@ -163,7 +191,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
                 }
             }
         }
-        dataUpdateCallback.updateWhiteListPackages(JsonParser.getListData(whiteListPackages));
+        methodHookInit.updateData(WHITE_LIST_PACKAGES, json.toString());
         try {
             writeFile();
         } catch (Exception e) {
@@ -190,7 +218,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
                 }
             }
         }
-        dataUpdateCallback.updateMonitorPackagesActivity(JsonParser.getListData(monitorPackagesActivityBehaviour));
+        methodHookInit.updateData(MONITOR_PACKAGES_ACTIVITY, json.toString());
         try {
             writeFile();
         } catch (Exception e) {
@@ -221,7 +249,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
                 LogManager.log(TAG, "setMonitorActivity JSONException error: " + e.toString());
             }
         }
-        dataUpdateCallback.updateMonitorActivitys(JsonParser.getMapData(monitorActivityBehaviour));
+        methodHookInit.updateData(MONITOR_ACTIVITYS, json.toString());
         try {
             writeFile();
         } catch (Exception e) {
@@ -234,11 +262,11 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
         try {
             if (activityName != null && !activityName.isEmpty()) {
                 modifyPackagesStartActivity.put(packageName, activityName);
-                dataUpdateCallback.updateModifyStartActivityPackages(JsonParser.getMapStringData(modifyPackagesStartActivity));
+                methodHookInit.updateData(MODIFY_PACKAGES_START_ACTIVITY, json.toString());
                 writeFile();
             } else if (modifyPackagesStartActivity.has(packageName)) {
                 modifyPackagesStartActivity.remove(packageName);
-                dataUpdateCallback.updateModifyStartActivityPackages(JsonParser.getMapStringData(modifyPackagesStartActivity));
+                methodHookInit.updateData(MODIFY_PACKAGES_START_ACTIVITY, json.toString());
                 writeFile();
             }
         } catch (Exception e) {
@@ -261,7 +289,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
                 }
             }
         }
-        dataUpdateCallback.updatePackagesHideAccessibility(JsonParser.getListData(packagesHideAccessibility));
+        methodHookInit.updateData(PACKAGES_HIDE_ACCESSIBILITY, json.toString());
         try {
             writeFile();
         } catch (Exception e) {
@@ -280,7 +308,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
         long origId = Binder.clearCallingIdentity();
         try {
             expandHookPackages.put(packageName, enable);
-            dataUpdateCallback.setEnabledHookPackage(packageName, enable);
+            methodHookInit.setEnabledHookPackage(packageName, enable);
         } catch (JSONException e) {
             LogManager.log(TAG, " setEnabledHookPackage JSONException error:" + e.toString());
         } finally {
@@ -339,7 +367,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
         long origId = Binder.clearCallingIdentity();
         try {
             sundriesData.put("pause_hooks", b);
-            dataUpdateCallback.setPauseAllHook(b);
+            methodHookInit.setPauseAllHook(b);
             if (b) {
                 pauseExpandHook();
             }
@@ -358,6 +386,10 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     @Override
     public boolean isPauseAllHook() throws RemoteException {
         try {
+            if (!userManager.isUserUnlocked() && isEnabledRebootProtect()) {
+                sundriesData.put("pause_hooks",true);
+                return true;
+            }
             if (sundriesData.has("pause_hooks")) {
                 return sundriesData.getBoolean("pause_hooks");
             }
@@ -374,6 +406,9 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
 
     @Override
     public boolean getOneplusHideRootStatus() throws RemoteException {
+        if ((!userManager.isUserUnlocked() && isEnabledRebootProtect()) || isPauseAllHook()) {
+            return false;
+        }
         try {
             if (sundriesData.has("Oneplus_hide_root")) {
                 return sundriesData.getBoolean("Oneplus_hide_root");
@@ -386,9 +421,12 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
 
     @Override
     public void setOneplusHideRootStatus(boolean b) throws RemoteException {
+        if (isPauseAllHook()) {
+            return;
+        }
         try {
             sundriesData.put("Oneplus_hide_root", b);
-            dataUpdateCallback.setOneplusHideRootStatus(b);
+            methodHookInit.setOneplusHideRootStatus(b);
         } catch (JSONException e) {
             LogManager.log(TAG, " setOneplusHideRootStatus JSONException error:" + e.toString());
         }
@@ -440,7 +478,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     public PackageInfo getPackageInfo(String packageName, int flags) throws RemoteException {
         long origId = Binder.clearCallingIdentity();
         try {
-            PackageInfo p = pm.getPackageInfo(packageName,flags);
+            PackageInfo p = pm.getPackageInfo(packageName, flags);
             return p;
         } catch (PackageManager.NameNotFoundException e) {
             LogManager.log(TAG, "getPackageInfo error: " + e.toString());

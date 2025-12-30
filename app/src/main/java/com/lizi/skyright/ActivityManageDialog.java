@@ -140,11 +140,6 @@ public class ActivityManageDialog extends BaseDialog implements TextWatcher,View
                 whiteList.setEnabled(!p);
             }
         }
-        if (p && layout.getVisibility() != View.GONE) {
-            layout.setVisibility(View.GONE);
-        } else if (!p && layout.getVisibility() != View.VISIBLE) {
-            layout.setVisibility(View.VISIBLE);
-        }
     }
 
 
@@ -179,7 +174,7 @@ public class ActivityManageDialog extends BaseDialog implements TextWatcher,View
             activityInfo = appinfo.activities;
             activityListAdapter.notifyDataSetChanged(activityInfo);
             int uid = applicationInfo.uid;
-            boolean isHide = isWhiteList || isMonitor || uid <= 2000 || packageName.equals(launcherPackageName) || packageName.equals("com.lizi.skyright");
+            boolean isHide = isWhiteList || uid <= 2000 || packageName.equals(launcherPackageName) || packageName.equals("com.lizi.skyright");
             if (isHide && layout.getVisibility() != View.GONE) {
                 layout.setVisibility(View.GONE);
                 

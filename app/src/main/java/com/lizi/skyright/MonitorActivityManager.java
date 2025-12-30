@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class MonitorActivityManager extends XC_MethodHook {
+public class MonitorActivityManager extends XC_MethodHook implements DataUpdateListener {
 
     public static final String TAG = "MonitorActivityManager";
     private ClassLoader classLoader;
@@ -61,21 +61,40 @@ public class MonitorActivityManager extends XC_MethodHook {
         this.atmsObject = ActivityTaskManager.getService();
         this.skipStartActivityPermission = new SkipStartActivityPermissionCheck();
 	}
-    
-    
-    public SkipStartActivityPermissionCheck getSkipStartActivityPermission(){
+
+    @Override
+    public void dataUpdate(String key, String data) {
+        switch (key) {
+            case SystemServerManagerImpl.MODIFY_PACKAGES_START_ACTIVITY:
+                modifyStartActivityPackages = JsonParser.getMapStringData(data,key);
+                break;
+            case SystemServerManagerImpl.MONITOR_PACKAGES_ACTIVITY:
+                monitorPackagesActivity = JsonParser.getListData(data,key);
+                break;
+            case SystemServerManagerImpl.MONITOR_ACTIVITYS:
+                monitorActivitys = JsonParser.getMapData(data,key);
+                break;
+            case SystemServerManagerImpl.WHITE_LIST_PACKAGES:
+                whiteListPackages = JsonParser.getListData(data,key);
+                break;
+        }
+    }
+
+    public void releaseDialogResources() {
+        if (activityRequestDialog != null) {
+            activityRequestDialog.releaseResources();
+        }
+    }
+
+    public SkipStartActivityPermissionCheck getSkipStartActivityPermission() {
         return skipStartActivityPermission;
     }
 
     protected void initActivityRequestDialog() {
-        try {
-            Context pluginContext = context.createPackageContext("com.lizi.skyright", Context.CONTEXT_IGNORE_SECURITY | Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_REGISTER_PACKAGE);
-            Resources newResources = pluginContext.getResources();
-            Context con = new ContextThemeWrapper(pluginContext, newResources.newTheme());
-            View view = LayoutInflater.from(con).inflate(R.layout.activity_request_dialog, null);
+        Context res = methodHookInit.moduleResourcesContext();
+        if (res != null) {
+            View view = LayoutInflater.from(res).inflate(R.layout.activity_request_dialog, null);
             activityRequestDialog = new ActivityRequestDialog(context, view, this);
-        } catch (Exception e) {
-            XposedBridge.log(TAG + " initActivityRequestDialog error: " + e.toString());
         }
     }
 
@@ -94,7 +113,7 @@ public class MonitorActivityManager extends XC_MethodHook {
             Intent intent = (Intent) param.args[3];
             if (packageName != null && intent != null) {
                 if (whiteListPackages != null && whiteListPackages.contains(packageName)) {
-                    whiteListStartActivity(intent,param);
+                    whiteListStartActivity(intent, param);
                     return;
                 }
                 ComponentName componentName = intent.getComponent();
@@ -103,12 +122,10 @@ public class MonitorActivityManager extends XC_MethodHook {
                         return;
                     }
                     String startPackage = componentName.getPackageName();
-                    if (modifyStartActivityPackages.containsKey(startPackage)) {
+                    if (modifyStartActivityPackages != null && modifyStartActivityPackages.containsKey(startPackage)) {
                         String at = modifyStartActivityPackages.get(startPackage);
                         intent.setClassName(startPackage, at);
                     }
-                } else if (monitorPackagesActivity != null && monitorPackagesActivity.contains(packageName)) {
-                    monitorPackageActivity(packageName, intent, param);
                 } else if (componentName != null) {
                     String componentPackageName = componentName.getPackageName();
                     if (whiteListPackages != null && whiteListPackages.contains(componentPackageName)) {
@@ -118,23 +135,27 @@ public class MonitorActivityManager extends XC_MethodHook {
                         monitorActivity(packageName, intent, componentName, param);
                     } else if (monitorActivitys != null && monitorActivitys.containsKey(componentPackageName)) {
                         otherRequestStartMonitorActivity(packageName, intent, param);
-                    } 
+                    } else if (monitorPackagesActivity != null && monitorPackagesActivity.contains(packageName)) {
+                        monitorPackageActivity(packageName, intent, param);
+                    }
+                } else if (monitorPackagesActivity != null && monitorPackagesActivity.contains(packageName)) {
+                    monitorPackageActivity(packageName, intent, param);
                 }
             }
         }
 	}
-    
-    private void whiteListStartActivity(Intent intent,XC_MethodHook.MethodHookParam param){
+
+    private void whiteListStartActivity(Intent intent, XC_MethodHook.MethodHookParam param) {
         param.args[1] = "android";
         origId = Binder.clearCallingIdentity();
         ComponentName componentName = intent.getComponent();
         if (componentName != null) {
             String startPackage = componentName.getPackageName();
             Intent it = packageManager.getLaunchIntentForPackage(startPackage);
-            ComponentName component = it.getComponent();
-            if(component!=null){
+            ComponentName component = it != null ? it.getComponent() : null;
+            if (component != null) {
                 String startClass = component.getClassName();
-                if (startClass.equals(componentName.getClassName())&&modifyStartActivityPackages.containsKey(startPackage)) {
+                if (startClass.equals(componentName.getClassName()) && modifyStartActivityPackages.containsKey(startPackage)) {
                     String at = modifyStartActivityPackages.get(startPackage);
                     intent.setClassName(startPackage, at);
                 }
@@ -161,7 +182,12 @@ public class MonitorActivityManager extends XC_MethodHook {
             if (activityList.containsKey(presenActivity)) {
                 param.setResult(0);
                 handler.post(interceptActivityOperateCallback.setParameter(packageName, param.args, intent, presenActivity, ActivityRequestDialog.MONITOT_ACTIVITY_REQUEST_START_OTHER));
+                return;
             }
+        }
+
+        if (monitorPackagesActivity != null && monitorPackagesActivity.contains(packageName)) {
+            monitorPackageActivity(packageName, intent, param);
         }
 
     }
@@ -219,23 +245,6 @@ public class MonitorActivityManager extends XC_MethodHook {
         interceptActivityOperateCallback.setRefuseActivityOperate();
     }
 
-    public void updateModifyStartActivityPackages(Map<String, String> data) {
-        this.modifyStartActivityPackages = data;
-    }
-
-
-    public void updateMonitorPackagesActivity(Set<String> data) {
-        this.monitorPackagesActivity = data;
-    }
-
-    public void updateMonitorActivitys(Map<String, Map<String, String>> data) {
-        this.monitorActivitys = data;
-    }
-
-    public void updateWhiteListPackages(Set<String> data) {
-        this.whiteListPackages = data;
-    }
-
     private String getLauncherPackageName() {
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
@@ -278,7 +287,7 @@ public class MonitorActivityManager extends XC_MethodHook {
             int.class,int.class,ProfilerInfo.class,Bundle.class,int.class,boolean.class};
 
         public InterceptActivityOperateCallback() {
-            Class<?> cla = XposedHelpers.findClass("com.android.server.wm.ActivityTaskManagerService",classLoader);
+            Class<?> cla = XposedHelpers.findClass("com.android.server.wm.ActivityTaskManagerService", classLoader);
             md = XposedHelpers.findMethodExact(cla, "startActivityAsUser", clas);
         }
         @Override
@@ -296,13 +305,11 @@ public class MonitorActivityManager extends XC_MethodHook {
         }
 
         public void setRefuseActivityOperate() {
-            if (requestType == activityRequestDialog.REQUEST_START_MONITOT_ACTIVITY) {
-                ComponentName comp = intent.getComponent();
-                if (comp != null) {
-                    String pkg = comp.getPackageName();
-                    String act = comp.getClassName();
-                    methodHookInit.setRefuseActivityOperate(pkg, act);
-                }
+            ComponentName comp = intent.getComponent();
+            if (comp != null) {
+                String pkg = comp.getPackageName();
+                String act = comp.getClassName();
+                methodHookInit.setRefuseActivityOperate(pkg, act);
             }
         }
 

@@ -20,7 +20,7 @@ public class DynamicHookInit extends XC_MethodHook {
 	private Context context;
 	private PackageManager pm;
     private MethodHookInit methodHookInit;
-	private volatile Object dynamicHookRegistry;
+	private Object dynamicHookRegistry;
     private Object dynamicHook;
 
     public DynamicHookInit(ClassLoader moduleClassLoader) {
@@ -52,9 +52,6 @@ public class DynamicHookInit extends XC_MethodHook {
                 Object obj = dynamicHookRegistry;
                 if (obj != null) {
                     XposedHelpers.callMethod(obj, "unhookAll");
-                    if (methodHookInit != null) {
-                        hookRegistry.unhookAll();
-                    }
                 }
                 XposedBridge.log("new init dynamic hook");
                 String apkPath = pm.getApplicationInfo("com.lizi.skyright", 0).sourceDir;
@@ -65,34 +62,40 @@ public class DynamicHookInit extends XC_MethodHook {
                 Constructor<?> conHookRegistry = classHookRegistry.getConstructor(ClassLoader.class);
                 dynamicHookRegistry = conHookRegistry.newInstance(moduleClassLoader);
                 dynamicHook = conMethodHookInit.newInstance(dynamicHookRegistry);
+                XposedHelpers.callMethod(dynamicHook, "init");
                 XposedHelpers.callMethod(dynamicHook, "initDynamicMethodHook");
             } 
             XposedHelpers.callMethod(dynamicHook, "checkIsCoverPackage", packageName);
-        }else if (methodHookInit != null) {
+        } else if (methodHookInit != null) {
             methodHookInit.checkIsCoverPackage(packageName);
         }
     }
-
 
 	//初始化动态hook
 	private void initDynamicHook() throws Exception {
         XposedHelpers.findAndHookMethod("com.android.server.pm.PackageHandler", systemClassLoader, "handleMessage", Message.class, this);
 		String apkPath = pm.getApplicationInfo("com.lizi.skyright", 0).sourceDir;
 		PathClassLoader hookClassLoader = new PathClassLoader(apkPath, XposedBridge.BOOTCLASSLOADER);
+        Class<?> classMethodHookInit = hookClassLoader.loadClass("com.lizi.skyright.MethodHookInit");
+        Class<?> classHookRegistry = hookClassLoader.loadClass("com.lizi.skyright.HookRegistry");
+        Constructor<?> conMethodHookInit = classMethodHookInit.getConstructor(classHookRegistry);
+        Constructor<?> conHookRegistry = classHookRegistry.getConstructor(ClassLoader.class); 
+        dynamicHookRegistry = conHookRegistry.newInstance(moduleClassLoader);
+        dynamicHook = conMethodHookInit.newInstance(dynamicHookRegistry);
         try {
-            Class<?> classMethodHookInit = hookClassLoader.loadClass("com.lizi.skyright.MethodHookInit");
-            Class<?> classHookRegistry = hookClassLoader.loadClass("com.lizi.skyright.HookRegistry");
-            Constructor<?> conMethodHookInit = classMethodHookInit.getConstructor(classHookRegistry);
-            Constructor<?> conHookRegistry = classHookRegistry.getConstructor(ClassLoader.class); 
-            Object hook =  conHookRegistry.newInstance(moduleClassLoader);
-            dynamicHookRegistry = hook;
-            dynamicHook = conMethodHookInit.newInstance(dynamicHookRegistry);
-            XposedHelpers.callMethod(dynamicHook, "initDynamicMethodHook");
-            XposedBridge.log("dynamic hook mode init");
+            XposedHelpers.callMethod(dynamicHook, "tryDynamicLoad");
+            try {
+                XposedHelpers.callMethod(dynamicHook, "init");
+                XposedHelpers.callMethod(dynamicHook, "initDynamicMethodHook");
+                XposedBridge.log("dynamic hook init");
+            } catch (Exception e) {
+                XposedBridge.log("dynamic hook init error:" + e.toString());
+            }
         } catch (Exception e) {
             methodHookInit = new MethodHookInit(hookRegistry);
+            methodHookInit.init();
             methodHookInit.initMethodHook();
-            XposedBridge.log("static hook mode init");
+            XposedBridge.log("static hook init");
         }
 	}
 }

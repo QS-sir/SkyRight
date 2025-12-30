@@ -5,10 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.os.UserManager;
+import android.view.ContextThemeWrapper;
 import android.view.accessibility.IAccessibilityManagerClient;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -16,12 +19,13 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import java.util.Map;
 import java.util.Set;
-import java.lang.reflect.Method;
-import android.os.UserManager;
+import java.util.HashMap;
+import java.util.Iterator;
 
-public class MethodHookInit extends XC_MethodHook implements HookRegistry.ResourceReleasable,DataUpdateCallback {
+public class MethodHookInit extends XC_MethodHook implements HookRegistry.ResourceReleasable{
 
     private static final String TAG = "MethodHookInit";
+    private Map<String,DataUpdateListener> updateListener;
 	private HookRegistry hookRegistry;
     private ClassLoader classLoader;
     private SystemServerManagerImpl systemServerManagerImpl;
@@ -33,26 +37,33 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
     private XC_MethodHook.Unhook hideRootHook;
     private boolean isInitMethondHookCallback;
     private UserManager userManager;
+    private ProcessStartManager processStartManager;
+    private Context moduleResourcesContext;
 
 	public MethodHookInit(HookRegistry hookRegistry) {
-        XposedBridge.log("MethodHookInit init finish");
 		this.hookRegistry = hookRegistry;
+        this.updateListener = new HashMap<>();
         this.classLoader = hookRegistry.getSystemClassLoader();
         this.userManager = hookRegistry.getContext().getSystemService(UserManager.class);
-        init();
 	}
 
-	private void init() {
-        systemServerManagerImpl = new SystemServerManagerImpl(hookRegistry, this);
+    public void tryDynamicLoad() {
+        XposedBridge.log("try dynamic hook");
+    }
+
+	public void init() {
+        systemServerManagerImpl = new SystemServerManagerImpl(this);
         setUnInstallListener();
         registerBridgeBindingReceiver();
-        if (!userManager.isUserUnlocked()){
+        if (!userManager.isUserUnlocked()) {
             UserUnlockListener.initUnlockListener(this);
-        }else{
+        } else {
             unlockCallback();
         }
+        XposedBridge.log(TAG + " init finish");
 	}
-    
+
+    //注册桥接广播，用于与system_server交互
     private void registerBridgeBindingReceiver() {
         bridgeBindingReceiver = new BridgeBindingReceiver(hookRegistry, systemServerManagerImpl);
         IntentFilter intentFilter = new IntentFilter(BridgeBindingReceiver.BRIDGE_ACTION);
@@ -60,31 +71,43 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
     }
 
 
+    //设置卸载监听器
     private void setUnInstallListener() {
         Object obj[] = {String.class,long.class,int.class,int.class,boolean.class,this};
         hookRegistry.findAndHookMethod("com.android.server.pm.DeletePackageHelper", hookRegistry.getSystemClassLoader(), "deletePackageX", obj);
     }
 
-    
-    
+
     @Override
     protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
         String packageName = param.args[0].toString();
         checkExpandPackageIsUnInstall(packageName);
     }
 
-
-    @Override
-    public void updateAllData(String data) {
+    public void updateData(String key,String data){
         if (!isInitMethondHookCallback) {
             initMethodHookCallback();
         }
-        updateModifyStartActivityPackages(JsonParser.getMapStringData(data, SystemServerManagerImpl.MODIFY_PACKAGES_START_ACTIVITY));
-        updateMonitorPackagesActivity(JsonParser.getListData(data, SystemServerManagerImpl.MONITOR_PACKAGES_ACTIVITY));
-        updateMonitorActivitys(JsonParser.getMapData(data, SystemServerManagerImpl.MONITOR_ACTIVITYS));
-        updatePackagesHideAccessibility(JsonParser.getListData(data, SystemServerManagerImpl.PACKAGES_HIDE_ACCESSIBILITY));
-        updateWhiteListPackages(JsonParser.getListData(data, SystemServerManagerImpl.WHITE_LIST_PACKAGES));
-        hookExtensionManager.init(data);
+        if(key == null){
+            Iterator<String> iterator = updateListener.keySet().iterator();
+            while(iterator.hasNext()){
+                String k = iterator.next();
+                DataUpdateListener dataUpdateListener = updateListener.get(k);
+                dataUpdateListener.dataUpdate(k,data);
+            }
+            hookExtensionManager.init(data);
+        }else{
+            DataUpdateListener dataUpdateListener = updateListener.get(key);
+            dataUpdateListener.dataUpdate(key,data);
+        }
+    }
+    
+    private void initDataUpdateListener(){
+        updateListener.put(SystemServerManagerImpl.MODIFY_PACKAGES_START_ACTIVITY,monitorActivityManager);
+        updateListener.put(SystemServerManagerImpl.MONITOR_PACKAGES_ACTIVITY,monitorActivityManager);
+        updateListener.put(SystemServerManagerImpl.MONITOR_ACTIVITYS,monitorActivityManager);
+        updateListener.put(SystemServerManagerImpl.PACKAGES_HIDE_ACCESSIBILITY,hideAccessibilityStatus);
+        updateListener.put(SystemServerManagerImpl.WHITE_LIST_PACKAGES,monitorActivityManager);
     }
 
     private void initMethodHookCallback() {
@@ -92,13 +115,28 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
         hideAccessibilityStatus = new HideAccessibilityStatusManager(hookRegistry.getContext());
         hookExtensionManager = new HookExtensionManager(hookRegistry.getContext());
         monitorWindowManager = new MonitorWindowManager(hookRegistry.getContext());
+        processStartManager = new ProcessStartManager(hookRegistry.getContext());
         isInitMethondHookCallback = true;
+        initDataUpdateListener();
         XposedBridge.log(TAG + " initMethodHookCallback finish ");
     }
-    
-    protected void unlockCallback(){
+
+    protected void unlockCallback() {
         monitorActivityManager.initActivityRequestDialog();
         monitorWindowManager.initAccessibilityWindowManager();
+    }
+
+    protected Context moduleResourcesContext() {
+        try {
+            if (moduleResourcesContext == null) {
+                Context pluginContext = hookRegistry.getContext().createPackageContext("com.lizi.skyright", Context.CONTEXT_IGNORE_SECURITY | Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_REGISTER_PACKAGE);
+                Resources newResources = pluginContext.getResources();
+                moduleResourcesContext = new ContextThemeWrapper(pluginContext, newResources.newTheme());
+            }
+        }catch(Exception e){
+            XposedBridge.log(TAG + " moduleResourcesContext error:");
+        }
+        return moduleResourcesContext;
     }
 
     public void setRefuseActivityOperate(String pkg, String act) {
@@ -109,39 +147,10 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
         }
     }
 
-    @Override
-    public void updateModifyStartActivityPackages(Map<String, String> data) {
-        monitorActivityManager.updateModifyStartActivityPackages(data);
-    }
-
-
-    @Override
-    public void updateMonitorPackagesActivity(Set<String> data) {
-        monitorActivityManager.updateMonitorPackagesActivity(data);
-    }
-
-    @Override
-    public void updateMonitorActivitys(Map<String, Map<String, String>> data) {
-        monitorActivityManager.updateMonitorActivitys(data);
-    }
-
-    @Override
-    public void updateWhiteListPackages(Set<String> data) {
-        monitorActivityManager.updateWhiteListPackages(data);
-    }
-
-
-    @Override
-    public void updatePackagesHideAccessibility(Set<String> data) {
-        hideAccessibilityStatus.updatePackagesHideAccessibility(data);
-    }
-
-    @Override
     public void setEnabledHookPackage(String packageName, boolean enable) {
         hookExtensionManager.setEnabledHookPackage(packageName, enable);
     }
-
-    @Override
+    
     public void setOneplusHideRootStatus(boolean b) {
         if (Build.BRAND.equals("OnePlus")) {
             if (b) {
@@ -154,13 +163,13 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
         }
     }
 
-    @Override
     public void setPauseAllHook(boolean b) {
         if (b) {
             hookRegistry.pauseAllHook();
             if (hideRootHook != null) {
                 hideRootHook.unhook();
             }
+
             hookExtensionManager.unhookAll();
         } else {
             methodHook();
@@ -197,20 +206,21 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
         }
 	}
 
+    //统合所有hook方法
 	private void methodHook() {
 		hideOnePlusRootStatus();
         hookExtensionManager.init();
         initMonitorActivityManager();
-        initSkipStartActivityPermissionCheck();
         initHideAccessibilityStatus();
-       // initMonitorWindowManager();
+        // initMonitorWindowManager();
+        //initProcessStartManager();
 	}
 
     private void initMonitorActivityManager() {
         Object obj[] = {IApplicationThread.class,String.class,String.class,Intent.class,String.class,IBinder.class,String.class,
             int.class,int.class,ProfilerInfo.class,Bundle.class,int.class,boolean.class,monitorActivityManager};
         hookRegistry.findAndHookMethod("com.android.server.wm.ActivityTaskManagerService", hookRegistry.getSystemClassLoader(), "startActivityAsUser", obj);
-
+        initSkipStartActivityPermissionCheck();
     }
 
     private void initSkipStartActivityPermissionCheck() {
@@ -227,14 +237,19 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
         hookRegistry.findAndHookMethod(cs, "addClient", IAccessibilityManagerClient.class, int.class, hideAccessibilityStatus);
         hookRegistry.findAndHookMethod(cs, "getEnabledAccessibilityServiceList", int.class, int.class, hideAccessibilityStatus);
     }
-    
-    private void initMonitorWindowManager(){
-        Class<?> cs = XposedHelpers.findClass("com.android.server.wm.WindowManagerService",classLoader);
+
+    private void initProcessStartManager() {
+        Class<?> cs = XposedHelpers.findClass("com.android.server.am.ActivityManagerService", hookRegistry.getSystemClassLoader());
+        hookRegistry.hookAllMethods(cs, "startProcessLocked", processStartManager);
+    }
+
+    private void initMonitorWindowManager() {
+        Class<?> cs = XposedHelpers.findClass("com.android.server.wm.WindowManagerService", classLoader);
 //        Method md[] = cs.getDeclaredMethods();
 //        for (int i = 0; i < md.length; i++) {
 //            hookRegistry.hookAllMethods(cs,md[i].getName(),monitorWindowManager);
 //        }
-        hookRegistry.hookAllMethods(cs,"getFocusedWindowLocked",monitorWindowManager);
+        hookRegistry.hookAllMethods(cs, "getFocusedWindowLocked", monitorWindowManager);
     }
 
     private void hideOnePlusRootStatus() {
@@ -251,11 +266,20 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
         if (bridgeBindingReceiver != null) {
             hookRegistry.getContext().unregisterReceiver(bridgeBindingReceiver);
         }
+
         if (hideRootHook != null) {
             hideRootHook.unhook();
         }
-        hookExtensionManager.unhookAll();
-        XposedBridge.log("[com.lizi.skyright] release hook resources");
+
+        if (hookExtensionManager != null) {
+            hookExtensionManager.unhookAll();
+        }
+
+        if (monitorActivityManager != null) {
+            monitorActivityManager.releaseDialogResources();
+        }
+
+        XposedBridge.log("[com.lizi.skyright] release hook");
 	}
 
     //检查扩展模块是否被卸载

@@ -21,5 +21,7 @@ interface ISystemServerManager{
     void setMonitorActivity(String packageName,String activityName,String action);
     void setModifyPackageStartActivity(String packageName,String activityName);
     String getPackageLaunchActivityName(String packageName);
+    boolean isEnabledRebootProtect();
+    void setEnabledRebootProtect(boolean b);
 }
 

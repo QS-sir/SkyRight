@@ -159,23 +159,7 @@ public final class JsonParser {
             JSONObject jsonObject = new JSONObject(data);
             if (jsonObject.has(key)) {
                 JSONObject json = jsonObject.getJSONObject(key);
-                Iterator<String> keys = json.keys();
-                while (keys.hasNext()) {
-                    String k = keys.next();
-                    JSONObject vObj = json.optJSONObject(k);
-                    if (vObj != null) {
-                        Map<String, String> innerMap = new HashMap<>();
-                        Iterator<String> vKeys = vObj.keys();
-                        while (vKeys.hasNext()) {
-                            String vk = vKeys.next();
-                            String vv = vObj.optString(vk, null);
-                            if (vv != null) {
-                                innerMap.put(vk, vv);
-                            }
-                        }
-                        map.put(k, innerMap);
-                    }
-                }
+                map = getMapData(json);
             }
         } catch (JSONException e) {
             LogManager.log(TAG, "getMapData error: " + e.toString());

@@ -62,13 +62,13 @@ public class ActivityRequestDialog extends BaseFloatDialog implements View.OnLon
 
     @Override
     public boolean onLongClick(View view) {
-        if(view == presentAct){
+        if (view == presentAct) {
             clipboardManager.setText(presentAct.getText());
             Toast.makeText(getContext(), "已复制当前活动类名", Toast.LENGTH_SHORT).show();
-        }else if(view == startActivity){
+        } else if (view == startActivity) {
             clipboardManager.setText(startActivity.getText());
             Toast.makeText(getContext(), "已复制启动活动类名", Toast.LENGTH_SHORT).show();
-        }else if(view == intentText){
+        } else if (view == intentText) {
             clipboardManager.setText(intentText.getText());
             Toast.makeText(getContext(), "已复制意图", Toast.LENGTH_SHORT).show();
         }
@@ -106,13 +106,14 @@ public class ActivityRequestDialog extends BaseFloatDialog implements View.OnLon
         ComponentName com = intent.getComponent();
         if (com != null) {
             startActivity.setText(com.getClassName());
+            alwaysRefuse.setVisibility(View.VISIBLE);
+            
         } else {
             startActivity.setText("无");
+            alwaysRefuse.setVisibility(View.INVISIBLE);
         }
+        
         if (requestType == MONITOT_ALL_ACTIVITY) {
-            if (alwaysRefuse.getVisibility() != View.INVISIBLE) {
-                alwaysRefuse.setVisibility(View.INVISIBLE);
-            }
 			title.setText("应用申请意图");
         } else if (requestType == REQUEST_START_MONITOT_ACTIVITY) {
             if (alwaysRefuse.getVisibility() != View.VISIBLE) {

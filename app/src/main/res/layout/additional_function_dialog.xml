@@ -25,7 +25,7 @@
 			<TextView
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:text="临时禁用所有HOOK"/>
+				android:text="临时禁用模块"/>
 
 		</LinearLayout>
 
@@ -33,6 +33,34 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:id="@+id/additionalfunctiondialogSwitch1"/>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:gravity="center"
+		android:layout_marginBottom="8dp">
+
+		<LinearLayout
+			android:orientation="horizontal"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:gravity="left|center"
+			android:layout_weight="1.0">
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="重启保护模式"/>
+
+		</LinearLayout>
+
+		<Switch
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/additionalfunctiondialogSwitch2"/>
 
 	</LinearLayout>
 
@@ -59,7 +87,7 @@
 		<Switch
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:id="@+id/additionalfunctiondialogSwitch2"/>
+			android:id="@+id/additionalfunctiondialogSwitch3"/>
 
 	</LinearLayout>
 

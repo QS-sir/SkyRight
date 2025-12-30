@@ -30,7 +30,6 @@ public final class SystemServerManager {
         return systemServerManager;
     }
 
-
     public boolean isInitService() {
         return service != null;
     }
@@ -221,6 +220,23 @@ public final class SystemServerManager {
             LogManager.log(TAG, "getPackageLaunchActivityName error:" + e.toString());
         }
         return null;
+    }
+    
+    public boolean isEnabledRebootProtect(){
+        try {
+            return service.isEnabledRebootProtect();
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "isEnabledRebootProtect error:" + e.toString());
+        }
+        return false;
+    }
+    
+    public void setEnabledRebootProtect(boolean b){
+        try {
+            service.setEnabledRebootProtect(b);
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "setEnabledRebootProtect error:" + e.toString());
+        }
     }
 }
 

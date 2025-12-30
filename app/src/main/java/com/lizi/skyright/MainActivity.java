@@ -18,7 +18,7 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements BridgeManager.ConnectionCallback,View.OnClickListener {
 
     private TextView phoneInfo;
-    private Button packageActivityManage;
+    private Button packageActivityManage,hideAccessibilityStatus;
     private AdditionalFunctionDialog additionalFunctionDialog;
     private HideAccessibilityStatusDialog hideAccessibilityDialog;
     private long firstTime;
@@ -45,11 +45,10 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
         menu.add(1, 1, 1, "服务运行日志");
         menu.add(2, 2, 2, "应用运行日志");
 		menu.add(3, 3, 3, "扩展模块管理");
-        menu.add(4, 4, 4, "隐藏无障碍服务");
         menu.add(9, 9, 9, "附加功能");
         return super.onCreateOptionsMenu(menu);
     }
-
+    
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (!SystemServerManager.getManagerInstance().isInitService()) {
@@ -72,7 +71,7 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
                 startActivity(new Intent(this, HookExtensionActivity.class));
                 break;
             case 4:
-                hideAccessibilityDialog.show();
+                
                 break;
             case 9:
                 additionalFunctionDialog.show();
@@ -101,6 +100,8 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
         phoneInfo = findViewById(R.id.activitymainTextView1);
         phoneInfo.setText(getInfo());
         packageActivityManage = findViewById(R.id.activitymainButton1);
+        hideAccessibilityStatus = findViewById(R.id.activitymainButton2);
+        hideAccessibilityStatus.setOnClickListener(this);
         packageActivityManage.setOnClickListener(this);
     }
 
@@ -119,6 +120,8 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
     public void onClick(View view) {
         if(view == packageActivityManage){
             startActivity(new Intent(this,ActivityBehaviourManage.class));
+        }else if(view == hideAccessibilityStatus){
+            hideAccessibilityDialog.show();
         }
     }
 
@@ -134,6 +137,7 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
     }
 
     private void init() {
+        ApplicationIcon.initApplicationIcon(getApplication());
         additionalFunctionDialog = new AdditionalFunctionDialog(this);
         hideAccessibilityDialog = new HideAccessibilityStatusDialog(this);
         initViews();
