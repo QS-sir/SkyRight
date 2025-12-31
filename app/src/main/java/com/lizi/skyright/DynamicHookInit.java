@@ -1,16 +1,13 @@
 package com.lizi.skyright;
 
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Message;
-import android.os.UserManager;
 import dalvik.system.PathClassLoader;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import java.lang.reflect.Constructor;
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
 
 public class DynamicHookInit extends XC_MethodHook {
 
@@ -22,6 +19,7 @@ public class DynamicHookInit extends XC_MethodHook {
     private MethodHookInit methodHookInit;
 	private Object dynamicHookRegistry;
     private Object dynamicHook;
+    private XC_MethodHook.Unhook hook;
 
     public DynamicHookInit(ClassLoader moduleClassLoader) {
 		this.hookRegistry = new HookRegistry(moduleClassLoader);
@@ -29,7 +27,13 @@ public class DynamicHookInit extends XC_MethodHook {
 		this.moduleClassLoader = hookRegistry.getModuleClassLoader();
 		this.context = hookRegistry.getContext();
 		this.pm = context.getPackageManager();
+        init();
 	}
+
+    private void init() {
+        Class css = XposedHelpers.findClass("com.android.server.wm.WindowManagerService", systemClassLoader);
+        hook = XposedHelpers.findAndHookMethod("com.android.server.am.ActivityManagerService", systemClassLoader, "setWindowManager", css, this);
+    }
 
 	@Override
 	protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
@@ -42,7 +46,9 @@ public class DynamicHookInit extends XC_MethodHook {
         } else if (name.equals("setWindowManager")) {
             initDynamicHook();
             //初始化完毕就不需要此hook，解除该hook
-            XposedBridge.unhookMethod(param.method, this);
+            if (hook != null) {
+                hook.unhook();
+            }
         }
 	} 
 

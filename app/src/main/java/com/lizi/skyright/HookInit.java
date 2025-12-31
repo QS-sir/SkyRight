@@ -1,13 +1,11 @@
 package com.lizi.skyright;
 
-import android.app.ActivityManager;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
-import android.app.ActivityThread;
 
-public class HookInit implements IXposedHookLoadPackage{
+public class HookInit implements IXposedHookLoadPackage {
 
 	@Override
 	public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
@@ -17,10 +15,8 @@ public class HookInit implements IXposedHookLoadPackage{
 				lpparam.classLoader,
 				"isModuleActivated",
 				XC_MethodReplacement.returnConstant(true));
-		}else if("com.android.providers.settings".equals(lpparam.packageName)){
-            ClassLoader cl = ActivityThread.currentApplication().getClassLoader();
-            Class css = XposedHelpers.findClass("com.android.server.wm.WindowManagerService",cl);
-			XposedHelpers.findAndHookMethod("com.android.server.am.ActivityManagerService",cl, "setWindowManager",css,new DynamicHookInit(lpparam.classLoader));
+		} else if ("com.android.providers.settings".equals(lpparam.packageName)) {
+            new DynamicHookInit(lpparam.classLoader);
 		}
 	}
 
