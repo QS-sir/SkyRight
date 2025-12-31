@@ -91,7 +91,7 @@ public class MonitorActivityManager extends XC_MethodHook implements DataUpdateL
     }
 
     protected void initActivityRequestDialog() {
-        Context res = methodHookInit.moduleResourcesContext();
+        Context res = methodHookInit.getMduleResourcesContext();
         if (res != null) {
             View view = LayoutInflater.from(res).inflate(R.layout.activity_request_dialog, null);
             activityRequestDialog = new ActivityRequestDialog(context, view, this);

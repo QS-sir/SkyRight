@@ -33,7 +33,7 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
     private BridgeBindingReceiver bridgeBindingReceiver;
     private HookExtensionManager hookExtensionManager;
     private HideAccessibilityStatusManager hideAccessibilityStatus;
-    private MonitorWindowManager monitorWindowManager;
+    private MonitorSubWindowManager monitorSubWindowManager;
     private RemoveWindowSecureFlags removeWindowSecureFlags;
     private XC_MethodHook hideOnePlusRootStatus;
     private boolean isInitMethondHookCallback;
@@ -115,7 +115,7 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
         monitorActivityManager = new MonitorActivityManager(this);
         hideAccessibilityStatus = new HideAccessibilityStatusManager(hookRegistry.getContext());
         hookExtensionManager = new HookExtensionManager(hookRegistry.getContext());
-        monitorWindowManager = new MonitorWindowManager(hookRegistry.getContext());
+        monitorSubWindowManager = new MonitorSubWindowManager(this);
         processStartManager = new ProcessStartManager(hookRegistry.getContext());
         removeWindowSecureFlags = new RemoveWindowSecureFlags();
         hideOnePlusRootStatus = XC_MethodReplacement.returnConstant(false);
@@ -126,10 +126,10 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
 
     protected void unlockCallback() {
         monitorActivityManager.initActivityRequestDialog();
-        monitorWindowManager.initAccessibilityWindowManager();
+        //monitorWindowManager.initAccessibilityWindowManager();
     }
 
-    protected Context moduleResourcesContext() {
+    protected Context getMduleResourcesContext() {
         try {
             if (moduleResourcesContext == null) {
                 Context pluginContext = hookRegistry.getContext().createPackageContext("com.lizi.skyright", Context.CONTEXT_IGNORE_SECURITY | Context.CONTEXT_INCLUDE_CODE | Context.CONTEXT_REGISTER_PACKAGE);
@@ -201,8 +201,8 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
         initMonitorActivityManager();
         initHideAccessibilityStatus();
         setRemoveWindowSecureFlags();
-        // initMonitorWindowManager();
-        //initProcessStartManager();
+        initMonitorWindowManager();
+       // initProcessStartManager();
 	}
 
     private void setRemoveWindowSecureFlags() {
@@ -253,12 +253,9 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
     }
 
     private void initMonitorWindowManager() {
-        Class<?> cs = XposedHelpers.findClass("com.android.server.wm.WindowManagerService", classLoader);
-//        Method md[] = cs.getDeclaredMethods();
-//        for (int i = 0; i < md.length; i++) {
-//            hookRegistry.hookAllMethods(cs,md[i].getName(),monitorWindowManager);
-//        }
-        hookRegistry.hookAllMethods(cs, "getFocusedWindowLocked", monitorWindowManager);
+        Class<?> cs = XposedHelpers.findClass("com.android.server.wm.WindowManagerService",classLoader);
+        int i = hookRegistry.hookAllMethods(cs, "addWindow", monitorSubWindowManager);
+        XposedBridge.log("hook方法数量："+i);
     }
 
     private void hideOnePlusRootStatus() {

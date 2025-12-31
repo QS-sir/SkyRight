@@ -12,11 +12,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements BridgeManager.ConnectionCallback,View.OnClickListener {
 
+    private LinearLayout layout;
     private TextView phoneInfo;
     private Button packageActivityManage,hideAccessibilityStatus;
     private AdditionalFunctionDialog additionalFunctionDialog;
@@ -36,6 +38,8 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
         } else {
             setActionBarText(getResources().getString(R.string.xposed_activated) + "\t系统服务未连接");
 		}
+        layout = findViewById(R.id.activitymainLinearLayout1);
+        layout.setVisibility(View.GONE);
         initConnected();
     }
 
@@ -129,6 +133,7 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
         if (SystemServerManager.getManagerInstance().isInitService()) {
             setActionBarText(getResources().getString(R.string.xposed_activated) + "\t系统服务已连接");
             init();
+            layout.setVisibility(View.VISIBLE);
             Toast.makeText(getApplication(), "系统服务已连接", Toast.LENGTH_SHORT).show();
         }else{
             Toast.makeText(getApplication(), "服务连接异常", Toast.LENGTH_SHORT).show();

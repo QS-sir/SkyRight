@@ -95,13 +95,17 @@ public final class HookRegistry {
     }
 
 
-    public void hookAllMethods(Class<?> hookClass, String methodName, XC_MethodHook callback) {
-        hooks.addAll(XposedBridge.hookAllMethods(hookClass, methodName, callback));
+    public int hookAllMethods(Class<?> hookClass, String methodName, XC_MethodHook callback) {
+        Set<XC_MethodHook.Unhook> hook = XposedBridge.hookAllMethods(hookClass, methodName, callback);
+        hooks.addAll(hook);
+        return hook.size();
     }
 
 
-    public void hookAllConstructors(Class<?> hookClass, XC_MethodHook callback) {
-        hooks.addAll(XposedBridge.hookAllConstructors(hookClass, callback));
+    public int hookAllConstructors(Class<?> hookClass, XC_MethodHook callback) {
+        Set<XC_MethodHook.Unhook> hook = XposedBridge.hookAllConstructors(hookClass, callback);
+        hooks.addAll(hook);
+        return hook.size();
     }
 
     /**

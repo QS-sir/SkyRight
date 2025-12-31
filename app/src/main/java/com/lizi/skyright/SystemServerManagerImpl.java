@@ -35,6 +35,8 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     public static final String SUNDRIES_DATA = "sundries_data";
     public static final String EXPAND_HOOK_PACKAGES = "expand_hook_packages";
     public static final String WHITE_LIST_PACKAGES = "white_list_packages";
+    public static final String MONITOR_PACKAGE_SUBWINDOW = "monitor_packages_subwindow";
+    public static final String MONITOR_ACTIVITY_SUBWINDOW = "monitor_activity_subwindow";
 
     private HookRegistry hookRegistry;
     private PackageManager pm;
@@ -42,15 +44,11 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     private UserManager userManager;
     private File file;
     private MethodHookInit methodHookInit;
-    private JSONObject json;
-    private JSONArray monitorPackagesActivityBehaviour;
-    private JSONObject modifyPackagesStartActivity;
-    private JSONObject monitorActivityBehaviour;
-    private JSONArray whiteListPackages;
-	private JSONArray packagesHideAccessibility;
-    private JSONObject sundriesData;
-    private JSONObject expandHookPackages;
-
+    private JSONObject json,modifyPackagesStartActivity,monitorActivityBehaviour,sundriesData,
+    expandHookPackages,monitorActivitySubWindow;
+    private JSONArray monitorPackagesActivityBehaviour,whiteListPackages,packagesHideAccessibility,
+    monitorPackagesSubWindow;
+	
     public SystemServerManagerImpl(MethodHookInit methodHookInit) {
         this.methodHookInit = methodHookInit;
         this.hookRegistry = methodHookInit.getHookRegistry();
@@ -73,57 +71,38 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     }
 
     private void initDistribute() throws JSONException {
-        String value1 = MONITOR_PACKAGES_ACTIVITY ;
-        String value2 = MODIFY_PACKAGES_START_ACTIVITY;
-        String value3 = MONITOR_ACTIVITYS;
-        String value4 = PACKAGES_HIDE_ACCESSIBILITY;
-        String value5 = SUNDRIES_DATA;
-        String value6 = EXPAND_HOOK_PACKAGES;
-        String value7 = WHITE_LIST_PACKAGES;
-        if (json.has(value1)) {
-            monitorPackagesActivityBehaviour = json.getJSONArray(value1);
-        } else {
-            json.put(value1, new JSONArray());
-            monitorPackagesActivityBehaviour = json.getJSONArray(value1);
-        }
-        if (json.has(value2)) {
-            modifyPackagesStartActivity = json.getJSONObject(value2);
-        } else {
-            json.put(value2, new JSONObject());
-            modifyPackagesStartActivity = json.getJSONObject(value2);
-        }
-
-        if (json.has(value3)) {
-            monitorActivityBehaviour = json.getJSONObject(value3);
-        } else {
-            json.put(value3, new JSONObject());
-            monitorActivityBehaviour = json.getJSONObject(value3);
-        }
-        if (json.has(value4)) {
-            packagesHideAccessibility = json.getJSONArray(value4);
-        } else {
-            json.put(value4, new JSONArray());
-            packagesHideAccessibility = json.getJSONArray(value4);
-        }
-        if (json.has(value5)) {
-            sundriesData = json.getJSONObject(value5);
-        } else {
-            json.put(value5, new JSONObject());
-            sundriesData = json.getJSONObject(value5);
-        }
-        if (json.has(value6)) {
-            expandHookPackages = json.getJSONObject(value6);
-        } else {
-            json.put(value6, new JSONObject());
-            expandHookPackages = json.getJSONObject(value6);
-        }
-        if (json.has(value7)) {
-            whiteListPackages = json.getJSONArray(value7);
-        } else {
-            json.put(value7, new JSONArray());
-            whiteListPackages = json.getJSONArray(value7);
-        }
+        monitorPackagesActivityBehaviour = getJsonArray(MONITOR_PACKAGES_ACTIVITY);
+        modifyPackagesStartActivity = getJsonObject(MODIFY_PACKAGES_START_ACTIVITY);
+        monitorActivityBehaviour = getJsonObject(MONITOR_ACTIVITYS);
+        packagesHideAccessibility = getJsonArray(PACKAGES_HIDE_ACCESSIBILITY);
+        sundriesData = getJsonObject(SUNDRIES_DATA);
+        expandHookPackages = getJsonObject(EXPAND_HOOK_PACKAGES);
+        whiteListPackages = getJsonArray(WHITE_LIST_PACKAGES);
+        monitorPackagesSubWindow = getJsonArray(MONITOR_PACKAGE_SUBWINDOW);
+        monitorActivitySubWindow = getJsonObject(MONITOR_ACTIVITY_SUBWINDOW);
         methodHookInit.updateData(null, json.toString());
+    }
+    
+    private JSONArray getJsonArray(String keyName) throws JSONException{
+        JSONArray jsonArray = new JSONArray();
+        if (json.has(keyName)) {
+            jsonArray = json.getJSONArray(keyName);
+        } else {
+            json.put(keyName, new JSONArray());
+            jsonArray = json.getJSONArray(keyName);
+        }
+        return jsonArray;
+    }
+    
+    private JSONObject getJsonObject(String keyName)throws JSONException{
+        JSONObject jsonObject = new JSONObject();
+        if (json.has(keyName)) {
+            jsonObject = json.getJSONObject(keyName);
+        } else {
+            json.put(keyName, new JSONObject());
+            jsonObject = json.getJSONObject(keyName);
+        }
+        return jsonObject;
     }
 
     private String readData() {
@@ -158,9 +137,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
         }
         try {
             sundriesData.put("remove_window_secure_flags", b);
-            if(b){
-                methodHookInit.setRemoveWindowSecureFlags(b);
-            }
+            methodHookInit.setRemoveWindowSecureFlags(b);
         } catch (JSONException e) {
             LogManager.log(TAG, " setRemoveWindowSecureFlags JSONException error:" + e.toString());
         }
@@ -269,6 +246,9 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
                 JSONObject list = monitorActivityBehaviour.optJSONObject(packageName);
                 if (list.has(activityName)) {
                     list.remove(activityName);
+                    if(list.length() == 0){
+                        monitorActivityBehaviour.remove(packageName);
+                    }
                 }
             }
         } else {
