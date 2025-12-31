@@ -44,11 +44,11 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     private UserManager userManager;
     private File file;
     private MethodHookInit methodHookInit;
-    private JSONObject json,modifyPackagesStartActivity,monitorActivityBehaviour,sundriesData,
+    private JSONObject json,modifyPackagesStartActivity,monitorActivity,sundriesData,
     expandHookPackages,monitorActivitySubWindow;
     private JSONArray monitorPackagesActivityBehaviour,whiteListPackages,packagesHideAccessibility,
     monitorPackagesSubWindow;
-	
+
     public SystemServerManagerImpl(MethodHookInit methodHookInit) {
         this.methodHookInit = methodHookInit;
         this.hookRegistry = methodHookInit.getHookRegistry();
@@ -73,7 +73,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     private void initDistribute() throws JSONException {
         monitorPackagesActivityBehaviour = getJsonArray(MONITOR_PACKAGES_ACTIVITY);
         modifyPackagesStartActivity = getJsonObject(MODIFY_PACKAGES_START_ACTIVITY);
-        monitorActivityBehaviour = getJsonObject(MONITOR_ACTIVITYS);
+        monitorActivity = getJsonObject(MONITOR_ACTIVITYS);
         packagesHideAccessibility = getJsonArray(PACKAGES_HIDE_ACCESSIBILITY);
         sundriesData = getJsonObject(SUNDRIES_DATA);
         expandHookPackages = getJsonObject(EXPAND_HOOK_PACKAGES);
@@ -82,26 +82,22 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
         monitorActivitySubWindow = getJsonObject(MONITOR_ACTIVITY_SUBWINDOW);
         methodHookInit.updateData(null, json.toString());
     }
-    
-    private JSONArray getJsonArray(String keyName) throws JSONException{
-        JSONArray jsonArray = new JSONArray();
+
+    private JSONArray getJsonArray(String keyName) throws JSONException {
         if (json.has(keyName)) {
-            jsonArray = json.getJSONArray(keyName);
-        } else {
-            json.put(keyName, new JSONArray());
-            jsonArray = json.getJSONArray(keyName);
-        }
-        return jsonArray;
+            return json.getJSONArray(keyName);
+        } 
+        JSONArray newArray = new JSONArray();
+        json.put(keyName, newArray);
+        return newArray; 
     }
-    
-    private JSONObject getJsonObject(String keyName)throws JSONException{
-        JSONObject jsonObject = new JSONObject();
+
+    private JSONObject getJsonObject(String keyName)throws JSONException {
         if (json.has(keyName)) {
-            jsonObject = json.getJSONObject(keyName);
-        } else {
-            json.put(keyName, new JSONObject());
-            jsonObject = json.getJSONObject(keyName);
-        }
+            return json.getJSONObject(keyName);
+        } 
+        JSONObject jsonObject = new JSONObject();
+        json.put(keyName, jsonObject);
         return jsonObject;
     }
 
@@ -242,24 +238,24 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     @Override
     public void setMonitorActivity(String packageName, String activityName, String action) throws RemoteException {
         if (action != null && action.equals(ActivityRequestDialog.REQUEST_IGNORE)) {
-            if (monitorActivityBehaviour.has(packageName)) {
-                JSONObject list = monitorActivityBehaviour.optJSONObject(packageName);
+            if (monitorActivity.has(packageName)) {
+                JSONObject list = monitorActivity.optJSONObject(packageName);
                 if (list.has(activityName)) {
                     list.remove(activityName);
-                    if(list.length() == 0){
-                        monitorActivityBehaviour.remove(packageName);
+                    if (list.length() == 0) {
+                        monitorActivity.remove(packageName);
                     }
                 }
             }
         } else {
             try {
-                if (monitorActivityBehaviour.has(packageName)) {
-                    JSONObject list = monitorActivityBehaviour.optJSONObject(packageName);
+                if (monitorActivity.has(packageName)) {
+                    JSONObject list = monitorActivity.optJSONObject(packageName);
                     list.put(activityName, action);
                 } else {
                     JSONObject list = new JSONObject();
                     list.put(activityName, action);
-                    monitorActivityBehaviour.put(packageName, list);
+                    monitorActivity.put(packageName, list);
                 }
             } catch (JSONException e) {
                 LogManager.log(TAG, "setMonitorActivity JSONException error: " + e.toString());
@@ -403,7 +399,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     public boolean isPauseAllHook() throws RemoteException {
         try {
             if (!userManager.isUserUnlocked() && isEnabledRebootProtect()) {
-                sundriesData.put("pause_hooks",true);
+                sundriesData.put("pause_hooks", true);
                 return true;
             }
             if (sundriesData.has("pause_hooks")) {
