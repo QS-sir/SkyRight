@@ -23,5 +23,7 @@ interface ISystemServerManager{
     String getPackageLaunchActivityName(String packageName);
     boolean isEnabledRebootProtect();
     void setEnabledRebootProtect(boolean b);
+    boolean isRemoveWindowSecureFlags();
+    void setRemoveWindowSecureFlags(boolean b);
 }
 

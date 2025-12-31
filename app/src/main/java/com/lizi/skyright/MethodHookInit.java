@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class MethodHookInit extends XC_MethodHook implements HookRegistry.ResourceReleasable{
+public class MethodHookInit extends XC_MethodHook implements HookRegistry.ResourceReleasable {
 
     private static final String TAG = "MethodHookInit";
     private Map<String,DataUpdateListener> updateListener;
@@ -34,7 +34,8 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
     private HookExtensionManager hookExtensionManager;
     private HideAccessibilityStatusManager hideAccessibilityStatus;
     private MonitorWindowManager monitorWindowManager;
-    private XC_MethodHook.Unhook hideRootHook;
+    private RemoveWindowSecureFlags removeWindowSecureFlags;
+    private XC_MethodHook hideOnePlusRootStatus;
     private boolean isInitMethondHookCallback;
     private UserManager userManager;
     private ProcessStartManager processStartManager;
@@ -84,30 +85,30 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
         checkExpandPackageIsUnInstall(packageName);
     }
 
-    public void updateData(String key,String data){
+    public void updateData(String key, String data) {
         if (!isInitMethondHookCallback) {
             initMethodHookCallback();
         }
-        if(key == null){
+        if (key == null) {
             Iterator<String> iterator = updateListener.keySet().iterator();
-            while(iterator.hasNext()){
+            while (iterator.hasNext()) {
                 String k = iterator.next();
                 DataUpdateListener dataUpdateListener = updateListener.get(k);
-                dataUpdateListener.dataUpdate(k,data);
+                dataUpdateListener.dataUpdate(k, data);
             }
             hookExtensionManager.init(data);
-        }else{
+        } else {
             DataUpdateListener dataUpdateListener = updateListener.get(key);
-            dataUpdateListener.dataUpdate(key,data);
+            dataUpdateListener.dataUpdate(key, data);
         }
     }
-    
-    private void initDataUpdateListener(){
-        updateListener.put(SystemServerManagerImpl.MODIFY_PACKAGES_START_ACTIVITY,monitorActivityManager);
-        updateListener.put(SystemServerManagerImpl.MONITOR_PACKAGES_ACTIVITY,monitorActivityManager);
-        updateListener.put(SystemServerManagerImpl.MONITOR_ACTIVITYS,monitorActivityManager);
-        updateListener.put(SystemServerManagerImpl.PACKAGES_HIDE_ACCESSIBILITY,hideAccessibilityStatus);
-        updateListener.put(SystemServerManagerImpl.WHITE_LIST_PACKAGES,monitorActivityManager);
+
+    private void initDataUpdateListener() {
+        updateListener.put(SystemServerManagerImpl.MODIFY_PACKAGES_START_ACTIVITY, monitorActivityManager);
+        updateListener.put(SystemServerManagerImpl.MONITOR_PACKAGES_ACTIVITY, monitorActivityManager);
+        updateListener.put(SystemServerManagerImpl.MONITOR_ACTIVITYS, monitorActivityManager);
+        updateListener.put(SystemServerManagerImpl.PACKAGES_HIDE_ACCESSIBILITY, hideAccessibilityStatus);
+        updateListener.put(SystemServerManagerImpl.WHITE_LIST_PACKAGES, monitorActivityManager);
     }
 
     private void initMethodHookCallback() {
@@ -116,6 +117,8 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
         hookExtensionManager = new HookExtensionManager(hookRegistry.getContext());
         monitorWindowManager = new MonitorWindowManager(hookRegistry.getContext());
         processStartManager = new ProcessStartManager(hookRegistry.getContext());
+        removeWindowSecureFlags = new RemoveWindowSecureFlags();
+        hideOnePlusRootStatus = XC_MethodReplacement.returnConstant(false);
         isInitMethondHookCallback = true;
         initDataUpdateListener();
         XposedBridge.log(TAG + " initMethodHookCallback finish ");
@@ -133,7 +136,7 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
                 Resources newResources = pluginContext.getResources();
                 moduleResourcesContext = new ContextThemeWrapper(pluginContext, newResources.newTheme());
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             XposedBridge.log(TAG + " moduleResourcesContext error:");
         }
         return moduleResourcesContext;
@@ -150,26 +153,11 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
     public void setEnabledHookPackage(String packageName, boolean enable) {
         hookExtensionManager.setEnabledHookPackage(packageName, enable);
     }
-    
-    public void setOneplusHideRootStatus(boolean b) {
-        if (Build.BRAND.equals("OnePlus")) {
-            if (b) {
-                hideRootHook = XposedHelpers.findAndHookMethod("com.android.server.oplus.heimdall.service.RootService", hookRegistry.getSystemClassLoader(), "isRoot", String.class, XC_MethodReplacement.returnConstant(false));
-            } else {
-                if (hideRootHook != null) {
-                    hideRootHook.unhook();
-                }
-            }
-        }
-    }
 
+    
     public void setPauseAllHook(boolean b) {
         if (b) {
             hookRegistry.pauseAllHook();
-            if (hideRootHook != null) {
-                hideRootHook.unhook();
-            }
-
             hookExtensionManager.unhookAll();
         } else {
             methodHook();
@@ -188,7 +176,7 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
             }
         } catch (RemoteException e) {
             LogManager.log(TAG, "initMethodHook  error:" + e.toString());
-            methodHook();
+            //methodHook();
         }
 	}
 
@@ -202,7 +190,7 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
             }
         } catch (RemoteException e) {
             LogManager.log(TAG, "initDynamicMethodHook  error:" + e.toString());
-            methodHook();
+            // methodHook();
         }
 	}
 
@@ -212,9 +200,30 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
         hookExtensionManager.init();
         initMonitorActivityManager();
         initHideAccessibilityStatus();
+        setRemoveWindowSecureFlags();
         // initMonitorWindowManager();
         //initProcessStartManager();
 	}
+
+    private void setRemoveWindowSecureFlags() {
+        try {
+            boolean b = systemServerManagerImpl.isRemoveWindowSecureFlags();
+            if (b) {
+                setRemoveWindowSecureFlags(b);
+            }
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "setRemoveWindowSecureFlags  error:" + e.toString());
+        }
+    }
+
+    public void setRemoveWindowSecureFlags(boolean b) {
+        if (b) {
+            Class<?> cs = XposedHelpers.findClass("com.android.server.wm.WindowManagerService", classLoader);
+            hookRegistry.hookAllMethods(cs, "relayoutWindow", removeWindowSecureFlags);
+        } else {
+            hookRegistry.unhook(removeWindowSecureFlags);
+        }
+    }
 
     private void initMonitorActivityManager() {
         Object obj[] = {IApplicationThread.class,String.class,String.class,Intent.class,String.class,IBinder.class,String.class,
@@ -255,20 +264,29 @@ public class MethodHookInit extends XC_MethodHook implements HookRegistry.Resour
     private void hideOnePlusRootStatus() {
         try {
             boolean b = systemServerManagerImpl.getOneplusHideRootStatus();
-            setOneplusHideRootStatus(b);
+            if (b) {
+                setOneplusHideRootStatus(b);
+            }
         } catch (RemoteException e) {
             LogManager.log(TAG, "hideOnePlusRootStatus  error:" + e.toString());
         }
     }
+    
+    public void setOneplusHideRootStatus(boolean b) {
+        if (Build.BRAND.equals("OnePlus")) {
+            if (b) {
+                hookRegistry.findAndHookMethod("com.android.server.oplus.heimdall.service.RootService", hookRegistry.getSystemClassLoader(), "isRoot", String.class, hideOnePlusRootStatus);
+            } else {
+                hookRegistry.unhook(hideOnePlusRootStatus);
+            }
+        }
+    }
+    
 
 	@Override
 	public void onRelease() throws Exception {
         if (bridgeBindingReceiver != null) {
             hookRegistry.getContext().unregisterReceiver(bridgeBindingReceiver);
-        }
-
-        if (hideRootHook != null) {
-            hideRootHook.unhook();
         }
 
         if (hookExtensionManager != null) {

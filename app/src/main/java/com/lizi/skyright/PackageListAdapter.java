@@ -17,7 +17,7 @@ public class PackageListAdapter extends BaseAdapter implements Runnable {
 
     private ActivityBehaviourManage context;
     private SystemServerManager systemServerManager;
-    private volatile List<ApplicationInfo> applications;
+    private List<ApplicationInfo> applications;
     private PackageManager pm;
     private volatile boolean inSearch; 
     private Handler handler;
@@ -25,10 +25,10 @@ public class PackageListAdapter extends BaseAdapter implements Runnable {
     public PackageListAdapter(ActivityBehaviourManage context) {
         this.context = context;
         this.systemServerManager = SystemServerManager.getManagerInstance();
-        this.applications = systemServerManager.getInstalledApplications();
-       // this.hideList = JsonParser.getListData(systemServerManager.getStorageData(),SystemServerManagerImpl.PACKAGES_HIDE_ACCESSIBILITY);
+        this.applications = new ArrayList<>();
         this.pm = context.getPackageManager();
         this.handler = new Handler();
+        new ThreadLoad().start();
     }
 
     public void notifyDataSetChanged(String search) {
@@ -36,18 +36,26 @@ public class PackageListAdapter extends BaseAdapter implements Runnable {
         if (search != null && !search.isEmpty()) {
             new ThreadSearch(search).start();
         } else {
-            applications = systemServerManager.getInstalledApplications();
-            handler.post(this);
+            new ThreadLoad().start();
         }
-
     }
-
+    
+    
     @Override
     public void run() {
-        super.notifyDataSetChanged();
+        notifyDataSetChanged();
         context.hideLoadWindow();
     }
+    
+    private class ThreadLoad extends Thread {
 
+        @Override
+        public void run() {
+           applications = systemServerManager.getInstalledApplications();
+            handler.post(PackageListAdapter.this);
+        }
+        
+    }
 
     private class ThreadSearch extends Thread {
 

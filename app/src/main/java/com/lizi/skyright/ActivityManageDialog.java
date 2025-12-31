@@ -135,6 +135,11 @@ public class ActivityManageDialog extends BaseDialog implements TextWatcher,View
             if (compoundButton == whiteList) {
                 systemServerManager.setPackageWhiteList(packageName, p);
                 monitorPackage.setEnabled(!p);
+                if(p){
+                    layout.setVisibility(View.GONE);
+                }else{
+                    layout.setVisibility(View.VISIBLE);
+                }
             } else if (compoundButton == monitorPackage) {
                 systemServerManager.setMonitorPackageActivity(packageName, p);
                 whiteList.setEnabled(!p);

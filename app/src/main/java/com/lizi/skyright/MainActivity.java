@@ -20,7 +20,6 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
     private TextView phoneInfo;
     private Button packageActivityManage,hideAccessibilityStatus;
     private AdditionalFunctionDialog additionalFunctionDialog;
-    private HideAccessibilityStatusDialog hideAccessibilityDialog;
     private long firstTime;
 
     @Override
@@ -121,7 +120,7 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
         if(view == packageActivityManage){
             startActivity(new Intent(this,ActivityBehaviourManage.class));
         }else if(view == hideAccessibilityStatus){
-            hideAccessibilityDialog.show();
+            startActivity(new Intent(this, HideAccessibilityStatusActivity.class));
         }
     }
 
@@ -139,7 +138,6 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
     private void init() {
         ApplicationIcon.initApplicationIcon(getApplication());
         additionalFunctionDialog = new AdditionalFunctionDialog(this);
-        hideAccessibilityDialog = new HideAccessibilityStatusDialog(this);
         initViews();
     }
 

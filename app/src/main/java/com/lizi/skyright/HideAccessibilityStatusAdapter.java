@@ -31,28 +31,37 @@ public class HideAccessibilityStatusAdapter extends BaseAdapter implements Compo
     public HideAccessibilityStatusAdapter(Context context) {
         this.context = context;
         this.systemServerManager = SystemServerManager.getManagerInstance();
-        this.applications = systemServerManager.getInstalledApplications();
+        this.applications = new ArrayList<>();
         this.hideList = JsonParser.getListData(systemServerManager.getStorageData(), SystemServerManagerImpl.PACKAGES_HIDE_ACCESSIBILITY);
         this.pm = context.getPackageManager();
         this.handler = new Handler();
+        new ThreadLoad().start();
     }
-    
-    
 
     public void notifyDataSetChanged(String search) {
         inSearch = false;
         if (search != null && !search.isEmpty()) {
             new ThreadSearch(search).start();
         } else {
-            applications = systemServerManager.getInstalledApplications();
-            handler.post(this);
+            new ThreadLoad().start();
         }
     }
 
     @Override
     public void run() {
-        super.notifyDataSetChanged();
+        notifyDataSetChanged();
     }
+    
+    private class ThreadLoad extends Thread {
+
+        @Override
+        public void run() {
+            applications = systemServerManager.getInstalledApplications();
+            handler.post(HideAccessibilityStatusAdapter.this);
+        }
+
+    }
+    
     
     private class ThreadSearch extends Thread {
 

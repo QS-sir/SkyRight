@@ -98,10 +98,10 @@ public final class HookRegistry {
     public void hookAllMethods(Class<?> hookClass, String methodName, XC_MethodHook callback) {
         hooks.addAll(XposedBridge.hookAllMethods(hookClass, methodName, callback));
     }
-    
-    
-    public void hookAllConstructors(Class<?> hookClass, XC_MethodHook callback){
-        hooks.addAll(XposedBridge.hookAllConstructors(hookClass,callback));
+
+
+    public void hookAllConstructors(Class<?> hookClass, XC_MethodHook callback) {
+        hooks.addAll(XposedBridge.hookAllConstructors(hookClass, callback));
     }
 
     /**
@@ -109,6 +109,16 @@ public final class HookRegistry {
      */
     private void addMethodHook(XC_MethodHook.Unhook hook) {
 		hooks.add(hook);
+    }
+
+    public void unhook(XC_MethodHook methodHook) {
+        for (XC_MethodHook.Unhook hook : hooks) {
+            XC_MethodHook method = hook.getCallback();
+            if (method == methodHook) {
+                hook.unhook();
+                hooks.remove(hook);
+            }
+        }
     }
 
     /**

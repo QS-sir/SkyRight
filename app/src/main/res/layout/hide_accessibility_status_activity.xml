@@ -8,15 +8,6 @@
 	android:padding="12dp"
 	android:gravity="top|center">
 
-	<TextView
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:text="隐藏无障碍状态"
-		android:layout_marginBottom="8dp"
-		android:textColor="#FF579FFF"
-		android:textSize="15sp"
-		android:textStyle="bold"/>
-
 	<EditText
 		android:layout_width="match_parent"
 		android:ems="10"

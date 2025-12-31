@@ -62,6 +62,7 @@ public class ActivityBehaviourManage extends Activity implements OnItemClickList
         searchInput.addTextChangedListener(this);
         windowManager.addView(view, windowParams);
     }
+    
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int p, long p1) {

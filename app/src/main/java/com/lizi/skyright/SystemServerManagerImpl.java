@@ -152,6 +152,42 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     }
 
     @Override
+    public void setRemoveWindowSecureFlags(boolean b) throws RemoteException {
+        if (isPauseAllHook()) {
+            return;
+        }
+        try {
+            sundriesData.put("remove_window_secure_flags", b);
+            if(b){
+                methodHookInit.setRemoveWindowSecureFlags(b);
+            }
+        } catch (JSONException e) {
+            LogManager.log(TAG, " setRemoveWindowSecureFlags JSONException error:" + e.toString());
+        }
+        try {
+            writeFile();
+        } catch (Exception e) {
+            LogManager.log(TAG, "setRemoveWindowSecureFlags Exception error: " + e.toString());
+		}
+    }
+
+    @Override
+    public boolean isRemoveWindowSecureFlags() throws RemoteException {
+        if ((!userManager.isUserUnlocked() && isEnabledRebootProtect()) || isPauseAllHook()) {
+            return false;
+        }
+        try {
+            if (sundriesData.has("remove_window_secure_flags")) {
+                return sundriesData.getBoolean("remove_window_secure_flags");
+            }
+        } catch (JSONException e) {
+            LogManager.log(TAG, "isRemoveWindowSecureFlags JSONException error: " + e.toString());
+		}
+        return false;
+    }
+
+
+    @Override
     public boolean isEnabledRebootProtect() throws RemoteException {
         try {
             if (sundriesData.has("reboot_protect")) {

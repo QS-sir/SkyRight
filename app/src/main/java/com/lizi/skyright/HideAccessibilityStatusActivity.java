@@ -1,49 +1,40 @@
 package com.lizi.skyright;
 
-import android.content.Context;
-import android.content.DialogInterface;
+import android.app.Activity;
+import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.WindowManager;
+import android.view.KeyEvent;
 import android.widget.EditText;
 import android.widget.ListView;
 
-public class HideAccessibilityStatusDialog extends BaseDialog implements DialogInterface.OnDismissListener,TextWatcher,Runnable{
+public class HideAccessibilityStatusActivity extends Activity implements TextWatcher,Runnable {
     
     private ListView appList;
     private EditText searchInput;
     private String search;
     private HideAccessibilityStatusAdapter hideAccessibilityStatusAdapter;
     
-    public HideAccessibilityStatusDialog(Context context){
-        super(context,R.layout.hide_accessibility_dialog);
-    }
-
     @Override
-    protected void init() {
-        getWindow().setWindowAnimations(android.R.style.Animation_Toast);
-        setWindowSize(getScreenWidth() / 9 * 8, WindowManager.LayoutParams.WRAP_CONTENT);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.hide_accessibility_status_activity);
+        init();
+    }
+    
+    private void init(){
         appList = findViewById(R.id.hideaccessibilitydialogListView1);
         searchInput = findViewById(R.id.hideaccessibilitydialogEditText1);
-        hideAccessibilityStatusAdapter = new HideAccessibilityStatusAdapter(getContext());
+        hideAccessibilityStatusAdapter = new HideAccessibilityStatusAdapter(this);
         appList.setAdapter(hideAccessibilityStatusAdapter);
         searchInput.addTextChangedListener(this);
-        setOnDismissListener(this);
     }
-
-    @Override
-    public void onDismiss(DialogInterface dialogInterface) {
-        searchInput.setText(null);
-    }
-
-
-    
     
     @Override
     public void run() {
         hideAccessibilityStatusAdapter.notifyDataSetChanged(search);
     }
-    
+
 
     @Override
     public void afterTextChanged(Editable editable) {
@@ -53,12 +44,29 @@ public class HideAccessibilityStatusDialog extends BaseDialog implements DialogI
 
     @Override
     public void beforeTextChanged(CharSequence charSequence, int p, int p1, int p2) {
-        
+
     }
 
     @Override
     public void onTextChanged(CharSequence charSequence, int p, int p1, int p2) {
-        
+
     }
+    
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (searchInput == null) {
+                return super.onKeyDown(keyCode, event);
+            }
+            if (searchInput.getText() != null && searchInput.getText().length() > 0) {
+                searchInput.setText(null);
+                return true;
+            } else {
+                finish();
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+    
     
 }

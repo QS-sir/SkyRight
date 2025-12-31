@@ -10,7 +10,7 @@ import android.widget.Toast;
 
 public class AdditionalFunctionDialog extends BaseDialog implements CompoundButton.OnCheckedChangeListener,DialogInterface.OnShowListener{
     
-    private Switch pauseHook,rebootProtect,hideRoot;
+    private Switch pauseHook,rebootProtect,hideRoot,removeWindowSecureFlags;
     private SystemServerManager systemServerManager;
     
     public AdditionalFunctionDialog(Context context){
@@ -36,9 +36,11 @@ public class AdditionalFunctionDialog extends BaseDialog implements CompoundButt
         pauseHook = findViewById(R.id.additionalfunctiondialogSwitch1);
         rebootProtect = findViewById(R.id.additionalfunctiondialogSwitch2);
         hideRoot = findViewById(R.id.additionalfunctiondialogSwitch3);
+        removeWindowSecureFlags = findViewById(R.id.additionalfunctiondialogSwitch4);
         pauseHook.setOnCheckedChangeListener(this);
         rebootProtect.setOnCheckedChangeListener(this);
         hideRoot.setOnCheckedChangeListener(this);
+        removeWindowSecureFlags.setOnCheckedChangeListener(this);
     }
 
     @Override
@@ -61,6 +63,13 @@ public class AdditionalFunctionDialog extends BaseDialog implements CompoundButt
             }else{
                 compoundButton.setChecked(false);
                 Toast.makeText(getContext(), "非一加手机无效", Toast.LENGTH_SHORT).show();
+            }
+        }else if(compoundButton == removeWindowSecureFlags){
+            if(systemServerManager.isPauseAllHook()){
+                compoundButton.setChecked(false);
+                Toast.makeText(getContext(), "已临时禁用模块无法开启", Toast.LENGTH_SHORT).show();
+            }else{
+                systemServerManager.setRemoveWindowSecureFlags(p);
             }
         }
     }

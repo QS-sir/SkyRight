@@ -238,5 +238,22 @@ public final class SystemServerManager {
             LogManager.log(TAG, "setEnabledRebootProtect error:" + e.toString());
         }
     }
+    
+    public boolean isRemoveWindowSecureFlags(){
+        try {
+           return service.isRemoveWindowSecureFlags();
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "isRemoveWindowSecureFlags error:" + e.toString());
+        }
+        return false;
+    }
+    
+    public void setRemoveWindowSecureFlags(boolean b){
+        try {
+            service.setRemoveWindowSecureFlags(b);
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "setRemoveWindowSecureFlags error:" + e.toString());
+        }
+    }
 }
 
