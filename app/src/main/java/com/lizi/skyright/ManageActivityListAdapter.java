@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
-public class MonitorActivityListAdapter extends BaseAdapter implements RadioGroup.OnCheckedChangeListener {
+public class ManageActivityListAdapter extends BaseAdapter implements RadioGroup.OnCheckedChangeListener {
 
     private ActivityInfo[] activityInfo;
     private Context context;
@@ -23,7 +23,7 @@ public class MonitorActivityListAdapter extends BaseAdapter implements RadioGrou
     private List<ActivityInfo> searchActivity;
     private boolean isSearch;
 
-    public MonitorActivityListAdapter(Context context) {
+    public ManageActivityListAdapter(Context context) {
         this.context = context;
         this.activityInfo = new ActivityInfo[0];
         this.pm = context.getPackageManager();
@@ -101,8 +101,8 @@ public class MonitorActivityListAdapter extends BaseAdapter implements RadioGrou
             holder = new ViewHolder();
             view = View.inflate(context, R.layout.monitor_activity_item, null);
             holder.imageView = view.findViewById(R.id.monitoractivityitemImageView1);
-            holder.className = view.findViewById(R.id.monitoractivityitemTextView1);
-            holder.label = view.findViewById(R.id.monitoractivityitemTextView2);
+            holder.className = view.findViewById(R.id.monitoractivityitemTextView2);
+            holder.label = view.findViewById(R.id.monitoractivityitemTextView1);
             holder.radioGroup = view.findViewById(R.id.monitoractivityitemRadioGroup1);
             holder.radioGroup.setOnCheckedChangeListener(this);
             view.setTag(holder);

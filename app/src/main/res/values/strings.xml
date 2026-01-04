@@ -8,4 +8,5 @@
     <string name="hook_extension_activity">扩展模块管理</string>
     <string name="activity_behaviour_manage">应用活动管理</string>
     <string name="hide_accessibility_status">隐藏无障碍状态</string>
+    <string name="monitor_subwindow_activity">应用子窗口管理</string>
 </resources>

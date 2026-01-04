@@ -10,7 +10,7 @@ import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import de.robv.android.xposed.XposedBridge;
+import org.json.JSONObject;
 
 public class HideAccessibilityStatusManager extends XC_MethodHook implements DataUpdateListener {
 
@@ -71,7 +71,7 @@ public class HideAccessibilityStatusManager extends XC_MethodHook implements Dat
 	}
 
     @Override
-    public void dataUpdate(String key, String data) {
+    public void dataUpdate(String key, JSONObject data) {
         this.packageHideAccessibilityList = JsonParser.getListData(data,key);
     }
 

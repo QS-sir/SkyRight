@@ -69,9 +69,14 @@
             android:label="@string/activity_behaviour_manage"
             android:exported="false"/>
 
-        <activity 
+        <activity
             android:name="com.lizi.skyright.HideAccessibilityStatusActivity"
             android:label="@string/hide_accessibility_status"
+            android:exported="false"/>
+
+        <activity 
+            android:name="com.lizi.skyright.MonitorSubWindowActivity"
+            android:label="@string/monitor_subwindow_activity"
             android:exported="false"/>
 
     </application>

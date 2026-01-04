@@ -42,7 +42,7 @@ public class ActivityManageDialog extends BaseDialog implements TextWatcher,View
     private String launcherPackageName;
     private Set<String> whiteListPackages,monitorPackagesActivity;
     private Map<String,String> startActivitys;
-    private MonitorActivityListAdapter activityListAdapter;
+    private ManageActivityListAdapter activityListAdapter;
     private ActivityListDialog activityListDialog;
 
     public ActivityManageDialog(Context context) {
@@ -58,7 +58,7 @@ public class ActivityManageDialog extends BaseDialog implements TextWatcher,View
         getWindow().setWindowAnimations(R.style.dialog_anim);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         setWindowSize(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
-        activityListAdapter = new MonitorActivityListAdapter(getContext());
+        activityListAdapter = new ManageActivityListAdapter(getContext());
         setOnShowListener(this);
         initViews();
     }
@@ -151,7 +151,7 @@ public class ActivityManageDialog extends BaseDialog implements TextWatcher,View
     @Override
     public void onShow(DialogInterface dialogInterface) {
         //activitys.removeCallbacks(this);
-        if (applicationInfo == null || !applicationInfo.packageName.equals(packageName)) {
+        if (applicationInfo != null && (!applicationInfo.packageName.equals(packageName)||packageName == null)) {
             whiteListPackages = JsonParser.getListData(systemServerManager.getStorageData(), SystemServerManagerImpl.WHITE_LIST_PACKAGES);
             monitorPackagesActivity = JsonParser.getListData(systemServerManager.getStorageData(), SystemServerManagerImpl.MONITOR_PACKAGES_ACTIVITY);
             startActivitys = JsonParser.getMapStringData(systemServerManager.getStorageData(), SystemServerManagerImpl.MODIFY_PACKAGES_START_ACTIVITY);

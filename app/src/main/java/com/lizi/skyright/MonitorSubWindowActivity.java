@@ -3,7 +3,6 @@ package com.lizi.skyright;
 import android.app.Activity;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -14,21 +13,18 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Toast;
-import com.lizi.skyright.MainActivity;
 import android.content.Context;
 
-public class ActivityBehaviourManage extends Activity implements OnItemClickListener,TextWatcher,Runnable,PackageListAdapter.HideLoadWindow {
-
+public class MonitorSubWindowActivity extends Activity implements OnItemClickListener,TextWatcher,Runnable,PackageListAdapter.HideLoadWindow {
+    
     private ListView appList;
     private EditText searchInput;
     private PackageListAdapter packageListAdapter;
     private String search;
     private WindowManager windowManager;
     private WindowManager.LayoutParams windowParams;
-    private ActivityManageDialog activityManageDialog;
-    
     private View view;
+    private ManageSubWindowDialog manageSubWindowDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +44,7 @@ public class ActivityBehaviourManage extends Activity implements OnItemClickList
         windowParams.gravity = Gravity.CENTER;
         windowParams.dimAmount = 0.5f;
         windowParams.format = PixelFormat.TRANSLUCENT;
-        activityManageDialog = new ActivityManageDialog(this);
+        manageSubWindowDialog = new ManageSubWindowDialog(this);
         initViews();
     }
 
@@ -63,13 +59,11 @@ public class ActivityBehaviourManage extends Activity implements OnItemClickList
         searchInput.addTextChangedListener(this);
         windowManager.addView(view, windowParams);
     }
-    
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int p, long p1) {
-        activityManageDialog.show(packageListAdapter.getItem(p));
+        manageSubWindowDialog.show(packageListAdapter.getItem(p));
     }
-
 
     @Override
     public void run() {
@@ -88,6 +82,11 @@ public class ActivityBehaviourManage extends Activity implements OnItemClickList
         }
     }
 
+    private void showLoadWindow() {
+        view.setVisibility(View.VISIBLE);
+        windowManager.updateViewLayout(view, windowParams);
+    }
+
     @Override
     public void onHideWindow() {
         view.setVisibility(View.GONE);
@@ -97,11 +96,6 @@ public class ActivityBehaviourManage extends Activity implements OnItemClickList
     @Override
     public Context getContext() {
         return getApplication();
-    }
-    
-    private void showLoadWindow() {
-        view.setVisibility(View.VISIBLE);
-        windowManager.updateViewLayout(view, windowParams);
     }
 
     @Override
@@ -129,5 +123,6 @@ public class ActivityBehaviourManage extends Activity implements OnItemClickList
         }
         return super.onKeyDown(keyCode, event);
     }
-
+    
+    
 }

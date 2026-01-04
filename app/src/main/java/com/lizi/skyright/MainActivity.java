@@ -20,7 +20,7 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
 
     private LinearLayout layout;
     private TextView phoneInfo;
-    private Button packageActivityManage,hideAccessibilityStatus;
+    private Button packageActivityManage,hideAccessibilityStatus,monitorSubWindowManager;
     private AdditionalFunctionDialog additionalFunctionDialog;
     private long firstTime;
 
@@ -104,8 +104,10 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
         phoneInfo.setText(getInfo());
         packageActivityManage = findViewById(R.id.activitymainButton1);
         hideAccessibilityStatus = findViewById(R.id.activitymainButton2);
+        monitorSubWindowManager = findViewById(R.id.activitymainButton3);
         hideAccessibilityStatus.setOnClickListener(this);
         packageActivityManage.setOnClickListener(this);
+        monitorSubWindowManager.setOnClickListener(this);
     }
 
     private String getInfo() {
@@ -125,6 +127,8 @@ public class MainActivity extends Activity implements BridgeManager.ConnectionCa
             startActivity(new Intent(this,ActivityBehaviourManage.class));
         }else if(view == hideAccessibilityStatus){
             startActivity(new Intent(this, HideAccessibilityStatusActivity.class));
+        }else if(view == monitorSubWindowManager){
+            startActivity(new Intent(this, MonitorSubWindowActivity.class));
         }
     }
 

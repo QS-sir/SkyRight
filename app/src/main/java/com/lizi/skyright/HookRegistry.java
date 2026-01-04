@@ -16,8 +16,8 @@ public final class HookRegistry {
     // 2. 系统/框架层的 ClassLoader (由 ActivityManager.getService() 获取)
     private final ClassLoader systemClassLoader;
 
-    // 3. 模块的 ClassLoader
-    private final ClassLoader moduleClassLoader;
+    // 3. hook的应用的 ClassLoader
+    private final ClassLoader hookClassLoader;
 
     // 4. 系统 Context
     private final Context context;
@@ -28,8 +28,8 @@ public final class HookRegistry {
     // 6. 资源释放回调
     private ResourceReleasable resourceReleasable;
 
-    public HookRegistry(ClassLoader moduleClassLoader) {
-        this.moduleClassLoader = moduleClassLoader;
+    public HookRegistry(ClassLoader hookClassLoader) {
+        this.hookClassLoader = hookClassLoader;
         this.context = ActivityThread.currentApplication();
         this.systemClassLoader = context.getClassLoader();
 
@@ -66,8 +66,8 @@ public final class HookRegistry {
     /**
      * 获取模块 ClassLoader
      */
-    public ClassLoader getModuleClassLoader() {
-        return moduleClassLoader;
+    public ClassLoader getHookClassLoader() {
+        return hookClassLoader;
     }
 
     /**

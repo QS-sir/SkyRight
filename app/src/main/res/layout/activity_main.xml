@@ -29,7 +29,7 @@
 	<Button
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:text="活动权限管理"
+		android:text="应用活动管理"
 		android:background="@drawable/btn_custom_blue"
 		android:textColor="#FFFFFFFF"
 		android:elevation="15dp"
@@ -49,10 +49,11 @@
 	<Button
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:text="应用窗口管理"
+		android:text="应用子窗口管理"
 		android:background="@drawable/btn_custom_blue"
 		android:textColor="#FFFFFFFF"
-		android:elevation="15dp"/>
+		android:elevation="15dp"
+		android:id="@+id/activitymainButton3"/>
 
 </LinearLayout>
 

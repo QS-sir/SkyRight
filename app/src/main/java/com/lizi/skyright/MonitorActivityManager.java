@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.json.JSONObject;
 
 public class MonitorActivityManager extends XC_MethodHook implements DataUpdateListener {
 
@@ -63,19 +64,19 @@ public class MonitorActivityManager extends XC_MethodHook implements DataUpdateL
 	}
 
     @Override
-    public void dataUpdate(String key, String data) {
+    public void dataUpdate(String key, JSONObject data) {
         switch (key) {
             case SystemServerManagerImpl.MODIFY_PACKAGES_START_ACTIVITY:
-                modifyStartActivityPackages = JsonParser.getMapStringData(data,key);
+                modifyStartActivityPackages = JsonParser.getMapStringData(data, key);
                 break;
             case SystemServerManagerImpl.MONITOR_PACKAGES_ACTIVITY:
-                monitorPackagesActivity = JsonParser.getListData(data,key);
+                monitorPackagesActivity = JsonParser.getListData(data, key);
                 break;
             case SystemServerManagerImpl.MONITOR_ACTIVITYS:
-                monitorActivitys = JsonParser.getMapData(data,key);
+                monitorActivitys = JsonParser.getMapData(data, key);
                 break;
             case SystemServerManagerImpl.WHITE_LIST_PACKAGES:
-                whiteListPackages = JsonParser.getListData(data,key);
+                whiteListPackages = JsonParser.getListData(data, key);
                 break;
         }
     }
@@ -91,7 +92,7 @@ public class MonitorActivityManager extends XC_MethodHook implements DataUpdateL
     }
 
     protected void initActivityRequestDialog() {
-        Context res = methodHookInit.getMduleResourcesContext();
+        Context res = methodHookInit.getModuleResourcesContext();
         if (res != null) {
             View view = LayoutInflater.from(res).inflate(R.layout.activity_request_dialog, null);
             activityRequestDialog = new ActivityRequestDialog(context, view, this);
@@ -170,6 +171,7 @@ public class MonitorActivityManager extends XC_MethodHook implements DataUpdateL
         if (activityList.containsKey(startActivity)) {
             String action = activityList.get(startActivity);
             if (action.equals(ActivityRequestDialog.REQUEST_ALWAYS_REFUSE)) {
+                XposedBridge.log("intercept  "+startActivity);
                 param.setResult(0);
                 return;
             } else if (action.equals(ActivityRequestDialog.REQUEST_ASK)) {
@@ -185,7 +187,6 @@ public class MonitorActivityManager extends XC_MethodHook implements DataUpdateL
                 return;
             }
         }
-
         if (monitorPackagesActivity != null && monitorPackagesActivity.contains(packageName)) {
             monitorPackageActivity(packageName, intent, param);
         }
@@ -224,12 +225,11 @@ public class MonitorActivityManager extends XC_MethodHook implements DataUpdateL
     }
 
     private void monitorPackageActivity(String packageName, Intent intent, XC_MethodHook.MethodHookParam param) {
-        param.setResult(0);
         String act = getPresentActivity(packageName);
-        if (activityRequestDialog.isShowing()) {
-            return;
+        if (!activityRequestDialog.isShowing()) {
+            param.setResult(0);
+            handler.post(interceptActivityOperateCallback.setParameter(packageName, param.args, intent, act, ActivityRequestDialog.MONITOT_ALL_ACTIVITY));
         }
-        handler.post(interceptActivityOperateCallback.setParameter(packageName, param.args, intent, act, ActivityRequestDialog.MONITOT_ALL_ACTIVITY));
     }
 
     @Override
@@ -283,7 +283,7 @@ public class MonitorActivityManager extends XC_MethodHook implements DataUpdateL
         private volatile int requestType;
         private volatile String packageName;
         private Method md;
-        private Object clas[] = {IApplicationThread.class,String.class,String.class,Intent.class,String.class,IBinder.class,String.class,
+        private Class<?> clas[] = {IApplicationThread.class,String.class,String.class,Intent.class,String.class,IBinder.class,String.class,
             int.class,int.class,ProfilerInfo.class,Bundle.class,int.class,boolean.class};
 
         public InterceptActivityOperateCallback() {

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 使用 ripple 标签作为根节点 -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="#FF0463D6">
 

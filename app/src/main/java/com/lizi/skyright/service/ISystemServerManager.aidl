@@ -20,6 +20,8 @@ interface ISystemServerManager{
     void setMonitorPackageActivity(String packageName,boolean b);
     void setMonitorActivity(String packageName,String activityName,String action);
     void setModifyPackageStartActivity(String packageName,String activityName);
+    void setMonitorPackagesSubWindow(String packageName,boolean b);
+    void setMonitorActivitySubWindow(String packageName,String className,boolean b);
     String getPackageLaunchActivityName(String packageName);
     boolean isEnabledRebootProtect();
     void setEnabledRebootProtect(boolean b);

@@ -19,9 +19,7 @@ public abstract class BaseFloatDialog implements View.OnTouchListener {
     private WindowManager windowManager;
     private View layoutView;
     private WindowManager.LayoutParams windowParams;
-    private boolean closing = false;
     private HideDialog hideDialog;
-    private ShowDialog showDialog;
     private boolean isShowing = false;
     private OnShowListener onShowListener;
     private OnDismissListener onDismissListener;
@@ -41,7 +39,6 @@ public abstract class BaseFloatDialog implements View.OnTouchListener {
         this.windowManager = context.getSystemService(WindowManager.class);
         this.layoutView = layoutView;
         this.hideDialog = new HideDialog();
-        this.showDialog = new ShowDialog();
         this.decelerateInterpolator = new DecelerateInterpolator();
         this.accelerateInterpolator = new AccelerateInterpolator();
         this.point = new Point();
@@ -50,6 +47,7 @@ public abstract class BaseFloatDialog implements View.OnTouchListener {
     }
 
     private void initWindowParams() {
+        windowManager.getDefaultDisplay().getRealSize(point);
         windowParams = new WindowManager.LayoutParams();
         windowParams.width = WindowManager.LayoutParams.WRAP_CONTENT;               
         windowParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
@@ -76,7 +74,7 @@ public abstract class BaseFloatDialog implements View.OnTouchListener {
             float x = event.getX();
             float y = event.getY();
             boolean isOutside = x < 0 || x > v.getWidth() || y < 0 || y > v.getHeight();
-            if (isOutside && !closing && isCancelable) {
+            if (isOutside && isCancelable) {
                 dismiss();
                 return true;
             }
@@ -88,11 +86,9 @@ public abstract class BaseFloatDialog implements View.OnTouchListener {
         if (isShowing || layoutView.getParent() != null) {
             return;
         }
-        if (point.x == 0) {
-            windowManager.getDefaultDisplay().getRealSize(point);
-            windowParams.width = point.x / 9 * 7;
-        }
+        windowParams.width = point.x / 9 * 7;
         windowManager.addView(layoutView, windowParams);
+        isShowing = true;
         if (!initOnCreate) {
             onCreate();
             initOnCreate = true;
@@ -117,10 +113,6 @@ public abstract class BaseFloatDialog implements View.OnTouchListener {
         if (!isShowing) {
             return;
         }
-        if (onDismissListener != null) {
-            onDismissListener.onDismiss();
-        }
-        closing = true;
         startDismissAnimation();
     }
 
@@ -134,12 +126,12 @@ public abstract class BaseFloatDialog implements View.OnTouchListener {
 
     private void startShowAnimation() {
         layoutView.setAlpha(0f);
-        layoutView.setScaleX(0.8f);
-        layoutView.setScaleY(0.8f);
-        layoutView.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(ANIM_DURATION).setInterpolator(decelerateInterpolator).withEndAction(showDialog).start();
+        layoutView.setScaleX(0.5f);
+        layoutView.setScaleY(0.5f);
+        layoutView.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(ANIM_DURATION).setInterpolator(decelerateInterpolator).start();
     }
 
-    public <T extends View> T findViewById(int id) {
+    public final <T extends View> T findViewById(int id) {
         return layoutView.findViewById(id);
     }
 
@@ -148,7 +140,7 @@ public abstract class BaseFloatDialog implements View.OnTouchListener {
     }
 
     private void startDismissAnimation() {
-        layoutView.animate().alpha(0f).scaleX(0.8f).scaleY(0.8f).setDuration(ANIM_DURATION).setInterpolator(accelerateInterpolator).withEndAction(hideDialog).start();
+        layoutView.animate().alpha(0f).scaleX(0.5f).scaleY(0.5f).setDuration(ANIM_DURATION).setInterpolator(accelerateInterpolator).withEndAction(hideDialog).start();
     }
 
     public final View getContentView() {
@@ -159,18 +151,12 @@ public abstract class BaseFloatDialog implements View.OnTouchListener {
         @Override
         public void run() {
             if (layoutView.getParent() != null) {
-                windowManager.removeViewImmediate(layoutView); // 彻底移除
+                windowManager.removeViewImmediate(layoutView);
+            }
+            if (onDismissListener != null) {
+                onDismissListener.onDismiss();
             }
             isShowing = false;
-            closing = false;
-        }
-    }
-
-    private class ShowDialog implements Runnable {
-        @Override
-        public void run() {
-            closing = false;
-            isShowing = true;
         }
     }
 
@@ -183,42 +169,29 @@ public abstract class BaseFloatDialog implements View.OnTouchListener {
         void onDismiss();
     }
 
-    private class ReleaseResources implements Runnable {
-
-        @Override
-        public void run() {
-            if (layoutView != null && layoutView.getParent() != null) {
-                try {
-                    // 使用 removeView 而不是 removeViewImmediate，更平滑
-                    windowManager.removeView(layoutView);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            onShowListener = null;
-            onDismissListener = null;
-            hideDialog = null;
-            showDialog = null;
-            // 3. 清理视图引用
-            if (layoutView != null) {
-                // 移除所有监听器
-                layoutView.setOnTouchListener(null);
-                // 清除背景 drawable，防止 drawable 持有 view 引用
-                layoutView.setBackground(null); 
-            }
-            // 4. 置空关键对象
-            context = null;
-            windowManager = null;
-            layoutView = null;
-            windowParams = null;
-            layoutView = null;
-        }
-    }
-
     public void releaseResources() {
-        if (layoutView != null) {
-            layoutView.post(new ReleaseResources());
+        if (layoutView != null && layoutView.getParent() != null) {
+            try {
+                windowManager.removeView(layoutView);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        onShowListener = null;
+        onDismissListener = null;
+        hideDialog = null;
+        // 3. 清理视图引用
+        if (layoutView != null) {
+            // 移除所有监听器
+            layoutView.setOnTouchListener(null);
+            // 清除背景 drawable，防止 drawable 持有 view 引用
+            layoutView.setBackground(null); 
+        }
+        // 4. 置空关键对象
+        context = null;
+        windowManager = null;
+        windowParams = null;
+        layoutView = null;
     }
 
 }

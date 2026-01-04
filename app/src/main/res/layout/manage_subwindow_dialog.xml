@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:padding="12dp">
+
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:padding="8dp"
+		android:layout_marginBottom="16dp"
+		android:background="@drawable/radius_background">
+
+		<ImageView
+			android:layout_width="38dp"
+			android:layout_height="38dp"
+			android:layout_marginRight="6dp"
+			android:id="@+id/managesubwindowdialogImageView1"/>
+
+		<LinearLayout
+			android:orientation="vertical"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent">
+
+			<LinearLayout
+				android:orientation="horizontal"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_weight="3"
+				android:gravity="left|center">
+
+				<TextView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:gravity="left|center"
+					android:textColor="#FFFFFFFF"
+					android:textSize="13sp"
+					android:textStyle="bold"
+					android:id="@+id/managesubwindowdialogTextView1"/>
+
+			</LinearLayout>
+
+			<LinearLayout
+				android:orientation="horizontal"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_weight="4"
+				android:gravity="left|center">
+
+				<TextView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:textColor="#FFFFFFFF"
+					android:textSize="12sp"
+					android:id="@+id/managesubwindowdialogTextView2"/>
+
+			</LinearLayout>
+
+		</LinearLayout>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginBottom="15dp"
+		android:gravity="center"
+		android:padding="8dp"
+		android:background="@drawable/radius_background">
+
+		<LinearLayout
+			android:orientation="horizontal"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:gravity="center">
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="拦截所有活动子窗口"
+				android:textColor="#FFFFFFFF"
+				android:textSize="13sp"/>
+
+			<LinearLayout
+				android:orientation="horizontal"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="right|center">
+
+				<Switch
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:id="@+id/managesubwindowdialogSwitch1"/>
+
+			</LinearLayout>
+
+			<LinearLayout
+				android:orientation="horizontal"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"/>
+
+		</LinearLayout>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/managesubwindowdialogLinearLayout1">
+
+		<EditText
+			android:layout_width="match_parent"
+			android:ems="10"
+			android:layout_height="wrap_content"
+			android:layout_marginBottom="12dp"
+			android:hint="搜索Activity"
+			android:textColor="#FF75BCFF"
+			android:textColorHint="#BB75BCFF"
+			android:padding="8dp"
+			android:singleLine="true"
+			android:background="@drawable/radius"
+			android:id="@+id/managesubwindowdialogEditText1"/>
+
+		<ListView
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:dividerHeight="8dp"
+			android:divider="@null"
+			android:id="@+id/managesubwindowdialogListView1"/>
+
+	</LinearLayout>
+
+</LinearLayout>
+

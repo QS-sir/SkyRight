@@ -80,7 +80,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
         whiteListPackages = getJsonArray(WHITE_LIST_PACKAGES);
         monitorPackagesSubWindow = getJsonArray(MONITOR_PACKAGE_SUBWINDOW);
         monitorActivitySubWindow = getJsonObject(MONITOR_ACTIVITY_SUBWINDOW);
-        methodHookInit.updateData(null, json.toString());
+        methodHookInit.updateData(null, json);
     }
 
     private JSONArray getJsonArray(String keyName) throws JSONException {
@@ -187,6 +187,68 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
     }
 
     @Override
+    public void setMonitorActivitySubWindow(String packageName, String className, boolean b) throws RemoteException {
+        if (b) {
+            if (monitorActivitySubWindow.has(packageName)) {
+                JSONArray j = monitorActivitySubWindow.optJSONArray(packageName);
+                j.put(className);
+            } else {
+                JSONArray j = new JSONArray();
+                j.put(className);
+                try {
+                    monitorActivitySubWindow.put(packageName, j);
+                } catch (JSONException e) {
+                    LogManager.log(TAG, "setMonitorActivitySubWindow JSONException error: " + e.toString());
+                }
+            }
+        } else {
+            if (monitorActivitySubWindow.has(packageName)){
+                JSONArray j = monitorActivitySubWindow.optJSONArray(packageName);
+                int size = j.length() - 1;
+                for (int i = size ; i >= 0; i--) {
+                    String pkg = j.optString(i, "");
+                    if (pkg.equals(packageName)) {
+                        j.remove(i);
+                        break;
+                    }
+                }
+                if(j.length() == 0){
+                    monitorActivitySubWindow.remove(packageName);
+                }
+            }
+        }
+        methodHookInit.updateData(MONITOR_ACTIVITY_SUBWINDOW,json);
+        try {
+            writeFile();
+        } catch (Exception e) {
+            LogManager.log(TAG, "setMonitorActivitySubWindow Exception error: " + e.toString());
+		}
+    }
+
+    @Override
+    public void setMonitorPackagesSubWindow(String packageName, boolean b) throws RemoteException {
+        if (b) {
+            monitorPackagesSubWindow.put(packageName);
+        } else {
+            int size = monitorPackagesSubWindow.length() - 1;
+            for (int i = size ; i >= 0; i--) {
+                String pkg = monitorPackagesSubWindow.optString(i, "");
+                if (pkg.equals(packageName)) {
+                    monitorPackagesSubWindow.remove(i);
+                    break;
+                }
+            }
+        }
+        methodHookInit.updateData(MONITOR_PACKAGE_SUBWINDOW, json);
+        try {
+            writeFile();
+        } catch (Exception e) {
+            LogManager.log(TAG, "setMonitorPackagesSubWindow Exception error: " + e.toString());
+		}
+    }
+
+
+    @Override
     public void setPackageWhiteList(String packageName, boolean b) throws RemoteException {
         if (b) {
             whiteListPackages.put(packageName);
@@ -200,7 +262,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
                 }
             }
         }
-        methodHookInit.updateData(WHITE_LIST_PACKAGES, json.toString());
+        methodHookInit.updateData(WHITE_LIST_PACKAGES, json);
         try {
             writeFile();
         } catch (Exception e) {
@@ -227,7 +289,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
                 }
             }
         }
-        methodHookInit.updateData(MONITOR_PACKAGES_ACTIVITY, json.toString());
+        methodHookInit.updateData(MONITOR_PACKAGES_ACTIVITY, json);
         try {
             writeFile();
         } catch (Exception e) {
@@ -261,7 +323,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
                 LogManager.log(TAG, "setMonitorActivity JSONException error: " + e.toString());
             }
         }
-        methodHookInit.updateData(MONITOR_ACTIVITYS, json.toString());
+        methodHookInit.updateData(MONITOR_ACTIVITYS, json);
         try {
             writeFile();
         } catch (Exception e) {
@@ -274,11 +336,11 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
         try {
             if (activityName != null && !activityName.isEmpty()) {
                 modifyPackagesStartActivity.put(packageName, activityName);
-                methodHookInit.updateData(MODIFY_PACKAGES_START_ACTIVITY, json.toString());
+                methodHookInit.updateData(MODIFY_PACKAGES_START_ACTIVITY, json);
                 writeFile();
             } else if (modifyPackagesStartActivity.has(packageName)) {
                 modifyPackagesStartActivity.remove(packageName);
-                methodHookInit.updateData(MODIFY_PACKAGES_START_ACTIVITY, json.toString());
+                methodHookInit.updateData(MODIFY_PACKAGES_START_ACTIVITY, json);
                 writeFile();
             }
         } catch (Exception e) {
@@ -301,7 +363,7 @@ public class SystemServerManagerImpl extends ISystemServerManager.Stub {
                 }
             }
         }
-        methodHookInit.updateData(PACKAGES_HIDE_ACCESSIBILITY, json.toString());
+        methodHookInit.updateData(PACKAGES_HIDE_ACCESSIBILITY, json);
         try {
             writeFile();
         } catch (Exception e) {

@@ -17,14 +17,14 @@
 		android:hint="搜索应用"
 		android:textColor="#FF579FFF"
 		android:textColorHint="#B2579FFF"
-		android:id="@+id/activitypermissionmanageEditText1"/>
+		android:id="@+id/packagelistlayoutEditText1"/>
 
 	<ListView
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:dividerHeight="10dp"
 		android:divider="@null"
-		android:id="@+id/activitypermissionmanageListView1"/>
+		android:id="@+id/packagelistlayoutListView1"/>
 
 </LinearLayout>
 

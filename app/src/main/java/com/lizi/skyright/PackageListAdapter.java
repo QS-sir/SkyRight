@@ -15,15 +15,17 @@ import java.util.Set;
 
 public class PackageListAdapter extends BaseAdapter implements Runnable {
 
-    private ActivityBehaviourManage context;
+    private HideLoadWindow hideLoadWindow;
+    private Context context;
     private SystemServerManager systemServerManager;
     private List<ApplicationInfo> applications;
     private PackageManager pm;
     private volatile boolean inSearch; 
     private Handler handler;
 
-    public PackageListAdapter(ActivityBehaviourManage context) {
-        this.context = context;
+    public PackageListAdapter(HideLoadWindow hideLoadWindow) {
+        this.hideLoadWindow = hideLoadWindow;
+        this.context = hideLoadWindow.getContext();
         this.systemServerManager = SystemServerManager.getManagerInstance();
         this.applications = new ArrayList<>();
         this.pm = context.getPackageManager();
@@ -44,7 +46,7 @@ public class PackageListAdapter extends BaseAdapter implements Runnable {
     @Override
     public void run() {
         notifyDataSetChanged();
-        context.hideLoadWindow();
+        hideLoadWindow.onHideWindow();
     }
     
     private class ThreadLoad extends Thread {
@@ -137,4 +139,8 @@ public class PackageListAdapter extends BaseAdapter implements Runnable {
         TextView packageName;
     }
 
+    public static interface HideLoadWindow{
+       void onHideWindow();
+       Context getContext();
+    }
 }

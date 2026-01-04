@@ -255,5 +255,21 @@ public final class SystemServerManager {
             LogManager.log(TAG, "setRemoveWindowSecureFlags error:" + e.toString());
         }
     }
+    
+    public void setMonitorPackagesSubWindow(String packageName,boolean b){
+        try {
+            service.setMonitorPackagesSubWindow(packageName, b);
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "setMonitorPackagesSubWindow error:" + e.toString());
+        }
+    }
+    
+    public void setMonitorActivitySubWindow(String packageName,String className,boolean b){
+        try {
+            service.setMonitorActivitySubWindow(packageName, className, b);
+        } catch (RemoteException e) {
+            LogManager.log(TAG, "setMonitorActivitySubWindow error:" + e.toString());
+        }
+    }
 }
 
