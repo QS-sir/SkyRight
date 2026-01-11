@@ -1,17 +1,19 @@
 package com.lizi.skyright;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.LinearLayout;
-import android.os.Handler;
-import android.os.Looper;
+import android.widget.Toast;
 
 public abstract class BaseSmallFloatWindow implements Runnable {
 
@@ -53,8 +55,7 @@ public abstract class BaseSmallFloatWindow implements Runnable {
         windowParams = new WindowManager.LayoutParams();
         windowParams.width = WindowManager.LayoutParams.WRAP_CONTENT;               
         windowParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        windowParams.x = 0;
-        windowParams.y = (point.y / 8) * 2;
+        windowParams.gravity = Gravity.CENTER;
         windowParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_DIALOG;
         windowParams.format = PixelFormat.TRANSPARENT;
         windowParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
@@ -81,6 +82,10 @@ public abstract class BaseSmallFloatWindow implements Runnable {
         return this.layoutView;
     }
 
+    private boolean getScreenOrientation() {
+        return context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
+    }
+
     @Override
     public void run() {
         timeEnd = true;
@@ -91,6 +96,12 @@ public abstract class BaseSmallFloatWindow implements Runnable {
         if (isShowing) {
             return;
         }
+        if (getScreenOrientation()) {
+            windowParams.y = point.y / 8 * 2;
+        } else {
+            windowParams.y = point.y / 10;
+        }
+        
         windowManager.addView(layoutView, windowParams);
         isShowing = true;
         if (!initOnCreate) {

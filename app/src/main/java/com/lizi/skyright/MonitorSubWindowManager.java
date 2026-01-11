@@ -36,6 +36,7 @@ public class MonitorSubWindowManager extends XC_MethodHook implements Runnable,D
     private Map map;
     private InterceptSubWindowRequestCallback interceptSubWindowRequestCallback;
     private ActivityChangedListener activityChangedListener;
+    private volatile long showTime;
 
     public MonitorSubWindowManager(MethodHookInit methodHookInit) {
         this.methodHookInit = methodHookInit;
@@ -136,6 +137,7 @@ public class MonitorSubWindowManager extends XC_MethodHook implements Runnable,D
 
     @Override
     public void run() {
+        showTime = System.currentTimeMillis();
         interceptSubWindowRequestCallback.show();
     }
 
@@ -156,7 +158,7 @@ public class MonitorSubWindowManager extends XC_MethodHook implements Runnable,D
 
     private class InterceptSubWindowRequestCallback extends BaseSmallFloatWindow implements View.OnClickListener,BaseSmallFloatWindow.OnDismissListener {
 
-        private TextView refuse,open;
+        private TextView remove,ignore,show;
 
         public InterceptSubWindowRequestCallback(Context context, View layoutView) {
             super(context, layoutView, 5000);
@@ -165,27 +167,26 @@ public class MonitorSubWindowManager extends XC_MethodHook implements Runnable,D
         @Override
         protected void onCreate() {
             setOnDismissListener(this);
-            refuse = findViewById(R.id.subwindowrequestlayoutTextView1);
-            open = findViewById(R.id.subwindowrequestlayoutTextView2);
-            open.setOnClickListener(this);
-            refuse.setOnClickListener(this);
+            remove = findViewById(R.id.subwindowrequestlayoutTextView1);
+            ignore = findViewById(R.id.subwindowrequestlayoutTextView2);
+            show = findViewById(R.id.subwindowrequestlayoutTextView3);
+            show.setOnClickListener(this);
+            ignore.setOnClickListener(this);
+            remove.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View view) {
-            if (view == open) {
+            if (view == show) {
                 setSubwindowVisibility(true);
-            } else if (view == refuse) {
-               // completeRemoveWindow();
+            } else if (view == remove) {
+                completeRemoveWindow();
             }
             dismiss();
         }
 
         @Override
         public void onDismiss(boolean b) {
-            if (b) {
-                setSubwindowVisibility(true);
-            } 
             mWindow = null;
             windowState = null;
         }
@@ -202,7 +203,7 @@ public class MonitorSubWindowManager extends XC_MethodHook implements Runnable,D
             if (layout == null) {
                 return;
             }
-            
+
             if (layout.flags != 0 && isRemoveWindowSecureFlags) {
                 int flags = layout.flags;
                 boolean b = (flags & WindowManager.LayoutParams.FLAG_SECURE) != 0;
@@ -210,26 +211,17 @@ public class MonitorSubWindowManager extends XC_MethodHook implements Runnable,D
                     layout.flags &= ~WindowManager.LayoutParams.FLAG_SECURE;
                 }
             }
-            
-        }
-        
-        @Override
-        protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-            WindowManager.LayoutParams layout = (WindowManager.LayoutParams) param.args[2];
-            if (layout == null) {
-                return;
-            }
-            
+
             int type = layout.type;
             IWindow window = (IWindow) param.args[1];
             if (type == WindowManager.LayoutParams.TYPE_BASE_APPLICATION) {
                 onActivityChangedListener(window);
             }
 
-            if (window != null && (type == WindowManager.LayoutParams.TYPE_APPLICATION_STARTING || type == WindowManager.LayoutParams.TYPE_BASE_APPLICATION) && interceptSubWindowRequestCallback != null && interceptSubWindowRequestCallback.isShowing()) {
+            if (windowState != null && window != null && interceptSubWindowRequestCallback != null && interceptSubWindowRequestCallback.isShowing() && System.currentTimeMillis() - showTime > 300L) {
                 currentActivityRecord = XposedHelpers.getObjectField(map.get(window.asBinder()), "mActivityRecord");
                 Object obj2 = XposedHelpers.getObjectField(windowState, "mActivityRecord");
-                if (currentActivityRecord != null && !currentActivityRecord.equals(obj2)) {
+                if (currentActivityRecord != null && !currentActivityRecord.equals(obj2) || param.args[5] == View.GONE) {
                     handler.post(this);
                 }
             }

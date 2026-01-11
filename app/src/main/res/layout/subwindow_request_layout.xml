@@ -19,7 +19,7 @@
 	<TextView
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="拦截"
+		android:text="销毁"
 		android:textColor="#FF0058FF"
 		android:gravity="center"
 		android:clickable="true"
@@ -32,14 +32,27 @@
 	<TextView
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="打开"
+		android:text="忽略"
 		android:textColor="#FF0058FF"
 		android:gravity="center"
 		android:clickable="true"
 		android:background="@drawable/btn_custom_press2"
 		android:textSize="12sp"
 		android:padding="3dp"
-		android:id="@+id/subwindowrequestlayoutTextView2"/>
+		android:id="@+id/subwindowrequestlayoutTextView2"
+		android:layout_marginRight="5dp"/>
+
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="显示"
+		android:textColor="#FF0058FF"
+		android:gravity="center"
+		android:clickable="true"
+		android:background="@drawable/btn_custom_press2"
+		android:textSize="12sp"
+		android:padding="3dp"
+		android:id="@+id/subwindowrequestlayoutTextView3"/>
 
 </LinearLayout>
 
